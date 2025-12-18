@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Projects {
+  ProjectID   Int         @id @default(autoincrement())
+  ProjectName String
+  Description String?
+  CreatedBy   Int
+  CreatedAt   DateTime    @default(now())
+  Users       Users       @relation(fields: [CreatedBy], references: [UserID])
+  TaskLists   TaskLists[]
+}
+
+model Roles {
+  RoleID    Int         @id @default(autoincrement())
+  RoleName  String      @unique
+  UserRoles UserRoles[]
+}
+
+model TaskComments {
+  CommentID   Int      @id @default(autoincrement())
+  TaskID      Int
+  UserID      Int
+  CommentText String
+  CreatedAt   DateTime @default(now())
+  Tasks       Tasks    @relation(fields: [TaskID], references: [TaskID])
+  Users       Users    @relation(fields: [UserID], references: [UserID])
+}
+
+model TaskHistory {
+  HistoryID  Int      @id @default(autoincrement())
+  TaskID     Int
+  ChangedBy  Int
+  ChangeType String
+  ChangeTime DateTime @default(now())
+  Users      Users    @relation(fields: [ChangedBy], references: [UserID])
+  Tasks      Tasks    @relation(fields: [TaskID], references: [TaskID])
+}
+
+model TaskLists {
+  ListID    Int      @id @default(autoincrement())
+  ProjectID Int
+  ListName  String
+  Projects  Projects @relation(fields: [ProjectID], references: [ProjectID])
+  Tasks     Tasks[]
+}
+
+model Tasks {
+  TaskID       Int            @id @default(autoincrement())
+  ListID       Int
+  AssignedTo   Int?
+  Title        String
+  Description  String?
+  Priority     String
+  Status       String
+  DueDate      DateTime?
+  CreatedAt    DateTime       @default(now())
+  TaskComments TaskComments[]
+  TaskHistory  TaskHistory[]
+  Users        Users?         @relation(fields: [AssignedTo], references: [UserID])
+  TaskLists    TaskLists      @relation(fields: [ListID], references: [ListID])
+}
+
+model UserRoles {
+  UserRoleID Int   @id @default(autoincrement())
+  UserID     Int
+  RoleID     Int
+  Roles      Roles @relation(fields: [RoleID], references: [RoleID])
+  Users      Users @relation(fields: [UserID], references: [UserID])
+}
+
+model Users {
+  UserID       Int            @id @default(autoincrement())
+  UserName     String         @unique
+  Email        String         @unique
+  PasswordHash String
+  CreatedAt    DateTime       @default(now())
+  Projects     Projects[]
+  TaskComments TaskComments[]
+  TaskHistory  TaskHistory[]
+  Tasks        Tasks[]
+  UserRoles    UserRoles[]
+}
