@@ -13,60 +13,85 @@ const registerSchema = z.object({
 
 export async function registerUser(formData: FormData) {
     try {
+        console.log('🔵 [REGISTER] Starting registration process...')
+
         const data = {
             username: formData.get('username') as string,
             email: formData.get('email') as string,
             password: formData.get('password') as string,
             name: formData.get('name') as string,
         }
+        console.log('🔵 [REGISTER] Form data extracted:', { username: data.username, email: data.email })
 
+        console.log('🔵 [REGISTER] Validating data...')
         const validated = registerSchema.parse(data)
+        console.log('✅ [REGISTER] Validation successful')
 
         // Check if user already exists
-        const existingUser = await prisma.user.findFirst({
+        console.log('🔵 [REGISTER] Checking for existing user...')
+        const existingUser = await prisma.users.findFirst({
             where: {
                 OR: [
-                    { email: validated.email },
-                    { username: validated.username },
+                    { Email: validated.email },
+                    { UserName: validated.username },
                 ],
             },
         })
 
         if (existingUser) {
+            console.log('❌ [REGISTER] User already exists')
             return { error: 'User with this email or username already exists' }
         }
+        console.log('✅ [REGISTER] No existing user found')
 
         // Hash password
+        console.log('🔵 [REGISTER] Hashing password...')
         const passwordHash = await hashPassword(validated.password)
+        console.log('✅ [REGISTER] Password hashed')
 
         // Create user
-        const user = await prisma.user.create({
+        console.log('🔵 [REGISTER] Creating user in database...')
+        const user = await prisma.users.create({
             data: {
-                username: validated.username,
-                email: validated.email,
-                passwordHash,
-                name: validated.name,
+                UserName: validated.username,
+                Email: validated.email,
+                PasswordHash: passwordHash,
             },
         })
+        console.log('✅ [REGISTER] User created with ID:', user.UserID)
 
         // Assign default "User" role
-        const userRole = await prisma.role.findUnique({
-            where: { roleName: 'User' },
+        console.log('🔵 [REGISTER] Finding User role...')
+        const userRole = await prisma.roles.findUnique({
+            where: { RoleName: 'User' },
         })
 
         if (userRole) {
-            await prisma.userRole.create({
+            console.log('✅ [REGISTER] User role found, ID:', userRole.RoleID)
+            console.log('🔵 [REGISTER] Assigning role to user...')
+            await prisma.userRoles.create({
                 data: {
-                    userId: user.id,
-                    roleId: userRole.id,
+                    UserID: user.UserID,
+                    RoleID: userRole.RoleID,
                 },
             })
+            console.log('✅ [REGISTER] Role assigned successfully')
+        } else {
+            console.log('⚠️  [REGISTER] User role not found in database')
         }
 
-        return { success: true, userId: user.id }
+        console.log('✅ [REGISTER] Registration completed successfully!')
+        return { success: true, userId: user.UserID }
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return { error: error.errors[0].message }
+            console.error('❌ [REGISTER] Validation error:', error.issues)
+            return { error: error.message }
+        }
+        console.error('❌ [REGISTER] Fatal error:', error)
+        console.error('❌ [REGISTER] Error type:', error instanceof Error ? error.constructor.name : typeof error)
+        console.error('❌ [REGISTER] Error message:', error instanceof Error ? error.message : String(error))
+        if (error instanceof Error && error.stack) {
+            console.error('❌ [REGISTER] Error stack:', error.stack)
         }
         return { error: 'Failed to register user' }
     }

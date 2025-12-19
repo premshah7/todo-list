@@ -4,22 +4,22 @@ import { Users, Mail } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 export default async function UsersPage() {
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
         include: {
-            userRoles: {
+            UserRoles: {
                 include: {
-                    role: true,
+                    Roles: true,
                 },
             },
             _count: {
                 select: {
-                    assignedTasks: true,
-                    createdProjects: true,
+                    Tasks: true,
+                    Projects: true,
                 },
             },
         },
         orderBy: {
-            createdAt: 'desc',
+            CreatedAt: 'desc',
         },
     })
 
@@ -32,7 +32,7 @@ export default async function UsersPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {users.map((user) => (
-                    <Card key={user.id}>
+                    <Card key={user.UserID}>
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
@@ -40,10 +40,10 @@ export default async function UsersPage() {
                                         <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-lg">{user.name || user.username}</CardTitle>
+                                        <CardTitle className="text-lg">{user.UserName}</CardTitle>
                                         <CardDescription className="flex items-center gap-1">
                                             <Mail className="h-3 w-3" />
-                                            {user.email}
+                                            {user.Email}
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -54,20 +54,20 @@ export default async function UsersPage() {
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-600 dark:text-gray-400">Role:</span>
                                     <span className="font-medium">
-                                        {user.userRoles.map(ur => ur.role.roleName).join(', ') || 'No role'}
+                                        {user.UserRoles.map(ur => ur.Roles.RoleName).join(', ') || 'No role'}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-600 dark:text-gray-400">Tasks:</span>
-                                    <span className="font-medium">{user._count.assignedTasks}</span>
+                                    <span className="font-medium">{user._count.Tasks}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-600 dark:text-gray-400">Projects:</span>
-                                    <span className="font-medium">{user._count.createdProjects}</span>
+                                    <span className="font-medium">{user._count.Projects}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-600 dark:text-gray-400">Joined:</span>
-                                    <span className="font-medium">{formatDate(user.createdAt)}</span>
+                                    <span className="font-medium">{formatDate(user.CreatedAt)}</span>
                                 </div>
                             </div>
                         </CardContent>

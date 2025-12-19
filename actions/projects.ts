@@ -24,32 +24,28 @@ export async function createProject(formData: FormData) {
 
         const validated = projectSchema.parse(data)
 
-        const project = await prisma.project.create({
+        const project = await prisma.projects.create({
             data: {
-                ...validated,
-                createdById: (session.user as any).id,
-                members: {
-                    create: {
-                        userId: (session.user as any).id,
-                        role: 'Owner',
-                    },
-                },
-                taskLists: {
+                ProjectName: validated.projectName,
+                Description: validated.description,
+                CreatedBy: parseInt((session.user as any).id),
+                TaskLists: {
                     create: [
-                        { listName: 'Pending', position: 0 },
-                        { listName: 'In Progress', position: 1 },
-                        { listName: 'Completed', position: 2 },
+                        { ListName: 'Pending' },
+                        { ListName: 'In Progress' },
+                        { ListName: 'Completed' },
                     ],
                 },
             },
         })
 
         revalidatePath('/projects')
-        return { success: true, projectId: project.id }
+        return { success: true, projectId: project.ProjectID }
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return { error: error.errors[0].message }
+            return { error: error.message }
         }
+        console.error('Error creating project:', error)
         return { error: 'Failed to create project' }
     }
 }
@@ -68,9 +64,12 @@ export async function updateProject(projectId: string, formData: FormData) {
 
         const validated = projectSchema.parse(data)
 
-        await prisma.project.update({
-            where: { id: projectId },
-            data: validated,
+        await prisma.projects.update({
+            where: { ProjectID: parseInt(projectId) },
+            data: {
+                ProjectName: validated.projectName,
+                Description: validated.description,
+            },
         })
 
         revalidatePath('/projects')
@@ -78,8 +77,9 @@ export async function updateProject(projectId: string, formData: FormData) {
         return { success: true }
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return { error: error.errors[0].message }
+            return { error: error.message }
         }
+        console.error('Error updating project:', error)
         return { error: 'Failed to update project' }
     }
 }
@@ -91,13 +91,14 @@ export async function deleteProject(projectId: string) {
     }
 
     try {
-        await prisma.project.delete({
-            where: { id: projectId },
+        await prisma.projects.delete({
+            where: { ProjectID: parseInt(projectId) },
         })
 
         revalidatePath('/projects')
         return { success: true }
     } catch (error) {
+        console.error('Error deleting project:', error)
         return { error: 'Failed to delete project' }
     }
 }
@@ -108,29 +109,28 @@ export async function getProjects() {
         return []
     }
 
-    const projects = await prisma.project.findMany({
+    const projects = await prisma.projects.findMany({
         where: {
-            members: {
-                some: {
-                    userId: (session.user as any).id,
-                },
-            },
+            CreatedBy: parseInt((session.user as any).id),
         },
         include: {
-            createdBy: {
+            Users: {
                 select: {
-                    username: true,
-                    name: true,
+                    UserName: true,
                 },
             },
-            _count: {
-                select: {
-                    members: true,
+            TaskLists: {
+                include: {
+                    _count: {
+                        select: {
+                            Tasks: true,
+                        },
+                    },
                 },
             },
         },
         orderBy: {
-            createdAt: 'desc',
+            CreatedAt: 'desc',
         },
     })
 
@@ -143,54 +143,37 @@ export async function getProject(projectId: string) {
         return null
     }
 
-    const project = await prisma.project.findFirst({
+    const project = await prisma.projects.findFirst({
         where: {
-            id: projectId,
-            members: {
-                some: {
-                    userId: (session.user as any).id,
-                },
-            },
+            ProjectID: parseInt(projectId),
+            CreatedBy: parseInt((session.user as any).id),
         },
         include: {
-            createdBy: {
+            Users: {
                 select: {
-                    id: true,
-                    username: true,
-                    name: true,
+                    UserID: true,
+                    UserName: true,
+                    Email: true,
                 },
             },
-            members: {
+            TaskLists: {
                 include: {
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            name: true,
-                            email: true,
-                        },
-                    },
-                },
-            },
-            taskLists: {
-                include: {
-                    tasks: {
+                    Tasks: {
                         include: {
-                            assignedTo: {
+                            Users: {
                                 select: {
-                                    id: true,
-                                    username: true,
-                                    name: true,
+                                    UserID: true,
+                                    UserName: true,
                                 },
                             },
                         },
                         orderBy: {
-                            position: 'asc',
+                            CreatedAt: 'desc',
                         },
                     },
                 },
                 orderBy: {
-                    position: 'asc',
+                    ListID: 'asc',
                 },
             },
         },

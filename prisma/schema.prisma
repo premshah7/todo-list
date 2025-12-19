@@ -13,7 +13,7 @@ model Projects {
   Description String?
   CreatedBy   Int
   CreatedAt   DateTime    @default(now())
-  Users       Users       @relation(fields: [CreatedBy], references: [UserID])
+  Users       Users       @relation(fields: [CreatedBy], references: [UserID], onDelete: Cascade)
   TaskLists   TaskLists[]
 }
 
@@ -29,8 +29,8 @@ model TaskComments {
   UserID      Int
   CommentText String
   CreatedAt   DateTime @default(now())
-  Tasks       Tasks    @relation(fields: [TaskID], references: [TaskID])
-  Users       Users    @relation(fields: [UserID], references: [UserID])
+  Tasks       Tasks    @relation(fields: [TaskID], references: [TaskID], onDelete: Cascade)
+  Users       Users    @relation(fields: [UserID], references: [UserID], onDelete: Cascade)
 }
 
 model TaskHistory {
@@ -39,15 +39,15 @@ model TaskHistory {
   ChangedBy  Int
   ChangeType String
   ChangeTime DateTime @default(now())
-  Users      Users    @relation(fields: [ChangedBy], references: [UserID])
-  Tasks      Tasks    @relation(fields: [TaskID], references: [TaskID])
+  Users      Users    @relation(fields: [ChangedBy], references: [UserID], onDelete: Cascade)
+  Tasks      Tasks    @relation(fields: [TaskID], references: [TaskID], onDelete: Cascade)
 }
 
 model TaskLists {
   ListID    Int      @id @default(autoincrement())
   ProjectID Int
   ListName  String
-  Projects  Projects @relation(fields: [ProjectID], references: [ProjectID])
+  Projects  Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade)
   Tasks     Tasks[]
 }
 
@@ -63,16 +63,16 @@ model Tasks {
   CreatedAt    DateTime       @default(now())
   TaskComments TaskComments[]
   TaskHistory  TaskHistory[]
-  Users        Users?         @relation(fields: [AssignedTo], references: [UserID])
-  TaskLists    TaskLists      @relation(fields: [ListID], references: [ListID])
+  Users        Users?         @relation(fields: [AssignedTo], references: [UserID], onDelete: SetNull)
+  TaskLists    TaskLists      @relation(fields: [ListID], references: [ListID], onDelete: Cascade)
 }
 
 model UserRoles {
   UserRoleID Int   @id @default(autoincrement())
   UserID     Int
   RoleID     Int
-  Roles      Roles @relation(fields: [RoleID], references: [RoleID])
-  Users      Users @relation(fields: [UserID], references: [UserID])
+  Roles      Roles @relation(fields: [RoleID], references: [RoleID], onDelete: Cascade)
+  Users      Users @relation(fields: [UserID], references: [UserID], onDelete: Cascade)
 }
 
 model Users {

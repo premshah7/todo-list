@@ -1,27 +1,17 @@
-import { auth } from '@/lib/next-auth'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/sidebar'
-import { SessionProvider } from '@/components/session-provider'
+import { getCurrentUser } from '@/lib/auth'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
-export default async function DashboardLayout({
-    children,
-}: {
-    children: React.ReactNode
-}) {
-    const session = await auth()
+export default async function Layout({ children }: { children: React.ReactNode }) {
+    const user = await getCurrentUser()
 
-    if (!session) {
-        redirect('/auth/signin')
+    if (!user) {
+        redirect('/login')
     }
 
     return (
-        <SessionProvider>
-            <div className="flex min-h-screen">
-                <Sidebar />
-                <main className="flex-1 overflow-y-auto animated-gradient">
-                    {children}
-                </main>
-            </div>
-        </SessionProvider>
+        <DashboardLayout user={user}>
+            {children}
+        </DashboardLayout>
     )
 }

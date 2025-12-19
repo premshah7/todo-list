@@ -5,7 +5,7 @@ import { auth } from '@/lib/next-auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-const taskSchema = z.object({
+const tasksSchema = z.object({
     title: z.string().min(1).max(200),
     description: z.string().optional(),
     priority: z.enum(['Low', 'Medium', 'High']),
@@ -14,7 +14,7 @@ const taskSchema = z.object({
     dueDate: z.string().optional(),
 })
 
-export async function createTask(listId: string, formData: FormData) {
+export async function createtasks(listId: string, formData: FormData) {
     const session = await auth()
     if (!session?.user) {
         return { error: 'Unauthorized' }
@@ -30,57 +30,57 @@ export async function createTask(listId: string, formData: FormData) {
             dueDate: formData.get('dueDate') as string,
         }
 
-        const validated = taskSchema.parse(data)
+        const validated = tasksSchema.parse(data)
 
         // Get the max position
-        const maxPosition = await prisma.task.aggregate({
-            where: { listId },
-            _max: { position: true },
+        const maxPosition = await prisma.tasks.aggregate({
+            where: { ListID: Number(listId) },
+            _max: { Position: true },
         })
 
-        const task = await prisma.task.create({
+        const tasks = await prisma.tasks.create({
             data: {
                 ...validated,
-                listId,
-                position: (maxPosition._max.position ?? -1) + 1,
-                dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+                ListID: Number(listId),
+                Position: (maxPosition._max.Position ?? -1) + 1,
+                DueDate: validated.dueDate ? new Date(validated.dueDate) : null,
             },
         })
 
         // Create history
         await prisma.taskHistory.create({
             data: {
-                taskId: task.id,
-                changedBy: (session.user as any).id,
-                changeType: 'created',
-                newValue: task.title,
+                TaskID: tasks.TaskID,
+                ChangedBy: (session.user as any).id,
+                ChangeType: 'created',
+                NewValue: tasks.Title,
             },
         })
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
-        return { success: true, taskId: task.id }
+        revalidatePath('/my-taskss')
+        return { success: true, tasksId: tasks.TaskID }
     } catch (error) {
         if (error instanceof z.ZodError) {
             return { error: error.errors[0].message }
         }
-        return { error: 'Failed to create task' }
+        return { error: 'Failed to create tasks' }
     }
 }
 
-export async function updateTask(taskId: string, formData: FormData) {
+export async function updatetasks(tasksId: string, formData: FormData) {
     const session = await auth()
     if (!session?.user) {
         return { error: 'Unauthorized' }
     }
 
     try {
-        const existingTask = await prisma.task.findUnique({
-            where: { id: taskId },
+        const existingtasks = await prisma.tasks.findUnique({
+            where: { TaskID: tasksId },
         })
 
-        if (!existingTask) {
-            return { error: 'Task not found' }
+        if (!existingtasks) {
+            return { error: 'tasks not found' }
         }
 
         const data = {
@@ -92,120 +92,120 @@ export async function updateTask(taskId: string, formData: FormData) {
             dueDate: formData.get('dueDate') as string,
         }
 
-        const validated = taskSchema.parse(data)
+        const validated = tasksSchema.parse(data)
 
-        const task = await prisma.task.update({
-            where: { id: taskId },
+        const tasks = await prisma.tasks.update({
+            where: { TaskID: Number(tasksId) },
             data: {
                 ...validated,
-                dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+                DueDate: validated.dueDate ? new Date(validated.dueDate) : null,
             },
         })
 
         // Create history entries for changes
-        if (existingTask.status !== task.status) {
+        if (existingtasks.Status !== tasks.Status) {
             await prisma.taskHistory.create({
                 data: {
-                    taskId: task.id,
-                    changedBy: (session.user as any).id,
-                    changeType: 'status_changed',
-                    oldValue: existingTask.status,
-                    newValue: task.status,
+                    HistoryID: tasks.TaskID,
+                    ChangedBy: (session.user as any).id,
+                    ChangeType: 'status_changed',
+                    OldValue: existingtasks.Status,
+                    NewValue: tasks.Status,
                 },
             })
         }
 
-        if (existingTask.assignedToId !== task.assignedToId) {
+        if (existingtasks.AssignedTo !== tasks.AssignedTo) {
             await prisma.taskHistory.create({
                 data: {
-                    taskId: task.id,
-                    changedBy: (session.user as any).id,
-                    changeType: 'assigned',
-                    oldValue: existingTask.assignedToId || 'none',
-                    newValue: task.assignedToId || 'none',
+                    HistoryID: tasks.TaskID,
+                    ChangedBy: (session.user as any).id,
+                    ChangeType: 'assigned',
+                    OldValue: existingtasks.AssignedTo || 'none',
+                    NewValue: tasks.AssignedTo || 'none',
                 },
             })
         }
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
-        revalidatePath(`/tasks/${taskId}`)
+        revalidatePath('/my-taskss')
+        revalidatePath(`/taskss/${tasksId}`)
         return { success: true }
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return { error: error.errors[0].message }
+            return { error: error.message }
         }
-        return { error: 'Failed to update task' }
+        return { error: 'Failed to update tasks' }
     }
 }
 
-export async function deleteTask(taskId: string) {
+export async function deletetasks(tasksId: string) {
     const session = await auth()
     if (!session?.user) {
         return { error: 'Unauthorized' }
     }
 
     try {
-        await prisma.task.delete({
-            where: { id: taskId },
+        await prisma.tasks.delete({
+            where: { TaskID: Number(tasksId) },
         })
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
+        revalidatePath('/my-taskss')
         return { success: true }
     } catch (error) {
-        return { error: 'Failed to delete task' }
+        return { error: 'Failed to delete tasks' }
     }
 }
 
-export async function moveTask(taskId: string, newListId: string, newPosition: number) {
+export async function movetasks(tasksId: string, newListId: string, newPosition: number) {
     const session = await auth()
     if (!session?.user) {
         return { error: 'Unauthorized' }
     }
 
     try {
-        const task = await prisma.task.findUnique({
-            where: { id: taskId },
+        const tasks = await prisma.tasks.findUnique({
+            where: { TaskID: Number(tasksId) },
             include: {
-                taskList: {
-                    select: { listName: true },
+                TaskLists: {
+                    select: { ListName: true },
                 },
             },
         })
 
-        if (!task) {
-            return { error: 'Task not found' }
+        if (!tasks) {
+            return { error: 'tasks not found' }
         }
 
-        const newList = await prisma.taskList.findUnique({
-            where: { id: newListId },
-            select: { listName: true },
+        const newList = await prisma.taskLists.findUnique({
+            where: { ListID: Number(newListId) },
+            select: { ListName: true },
         })
 
         if (!newList) {
             return { error: 'List not found' }
         }
 
-        // Update task list and position
-        await prisma.task.update({
-            where: { id: taskId },
+        // Update tasks list and position
+        await prisma.tasks.update({
+            where: { TaskID: Number(tasksId) },
             data: {
-                listId: newListId,
-                status: newList.listName as 'Pending' | 'In Progress' | 'Completed',
-                position: newPosition,
+                ListID: Number(newListId),
+                Status: newList.ListName as 'Pending' | 'In Progress' | 'Completed',
+                Position: newPosition,
             },
         })
 
         // Create history if list changed
-        if (task.listId !== newListId) {
+        if (tasks.ListID !== Number(newListId)) {
             await prisma.taskHistory.create({
                 data: {
-                    taskId: task.id,
-                    changedBy: (session.user as any).id,
-                    changeType: 'moved',
-                    oldValue: task.taskList.listName,
-                    newValue: newList.listName,
+                    TaskID: tasks.TaskID,
+                    ChangedBy: (session.user as any).id,
+                    ChangeType: 'moved',
+                    OldValue: tasks.TaskLists.ListName,
+                    NewValue: newList.ListName,
                 },
             })
         }
@@ -213,7 +213,7 @@ export async function moveTask(taskId: string, newListId: string, newPosition: n
         revalidatePath('/projects')
         return { success: true }
     } catch (error) {
-        return { error: 'Failed to move task' }
+        return { error: 'Failed to move tasks' }
     }
 }
 
@@ -223,26 +223,26 @@ export async function getMyTasks() {
         return []
     }
 
-    const tasks = await prisma.task.findMany({
+    const tasks = await prisma.tasks.findMany({
         where: {
-            assignedToId: (session.user as any).id,
+            AssignedTo: parseInt((session.user as any).id),
         },
         include: {
-            taskList: {
+            TaskLists: {
                 select: {
-                    listName: true,
-                    project: {
+                    ListName: true,
+                    Projects: {
                         select: {
-                            projectName: true,
-                            id: true,
+                            ProjectName: true,
+                            ProjectID: true,
                         },
                     },
                 },
             },
         },
         orderBy: [
-            { dueDate: 'asc' },
-            { createdAt: 'desc' },
+            { DueDate: 'asc' },
+            { CreatedAt: 'desc' },
         ],
     })
 
@@ -255,51 +255,49 @@ export async function getTask(taskId: string) {
         return null
     }
 
-    const task = await prisma.task.findUnique({
-        where: { id: taskId },
+    const task = await prisma.tasks.findUnique({
+        where: { TaskID: parseInt(taskId) },
         include: {
-            assignedTo: {
+            Users: {
                 select: {
-                    id: true,
-                    username: true,
-                    name: true,
+                    UserID: true,
+                    UserName: true,
+                    Email: true,
                 },
             },
-            taskList: {
+            TaskLists: {
                 select: {
-                    listName: true,
-                    project: {
+                    ListName: true,
+                    Projects: {
                         select: {
-                            id: true,
-                            projectName: true,
+                            ProjectName: true,
+                            ProjectID: true,
                         },
                     },
                 },
             },
-            comments: {
+            TaskComments: {
                 include: {
-                    user: {
+                    Users: {
                         select: {
-                            username: true,
-                            name: true,
+                            UserName: true,
                         },
                     },
                 },
                 orderBy: {
-                    createdAt: 'desc',
+                    CreatedAt: 'desc',
                 },
             },
-            histories: {
+            TaskHistory: {
                 include: {
-                    user: {
+                    Users: {
                         select: {
-                            username: true,
-                            name: true,
+                            UserName: true,
                         },
                     },
                 },
                 orderBy: {
-                    createdAt: 'desc',
+                    ChangeTime: 'desc',
                 },
             },
         },
@@ -315,11 +313,11 @@ export async function addComment(taskId: string, commentText: string) {
     }
 
     try {
-        await prisma.taskComment.create({
+        await prisma.taskComments.create({
             data: {
-                taskId,
-                userId: (session.user as any).id,
-                commentText,
+                TaskID: parseInt(taskId),
+                UserID: parseInt((session.user as any).id),
+                CommentText: commentText,
             },
         })
 

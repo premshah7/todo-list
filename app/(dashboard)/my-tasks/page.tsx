@@ -40,8 +40,8 @@ export default async function MyTasksPage() {
                 <div className="space-y-3">
                     {tasks.map((task) => (
                         <Link
-                            key={task.id}
-                            href={`/tasks/${task.id}`}
+                            key={task.TaskID}
+                            href={`/tasks/${task.TaskID}`}
                             className="block"
                         >
                             <Card className="hover:shadow-md transition-shadow">
@@ -49,31 +49,31 @@ export default async function MyTasksPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="font-semibold text-lg">{task.title}</h3>
-                                                <span className={`text-xs px-2 py-1 rounded-full ${priorityColors[task.priority as keyof typeof priorityColors]}`}>
-                                                    {task.priority}
+                                                <h3 className="font-semibold text-lg">{task.Title}</h3>
+                                                <span className={`text-xs px-2 py-1 rounded-full ${priorityColors[task.Priority as keyof typeof priorityColors]}`}>
+                                                    {task.Priority}
                                                 </span>
-                                                <span className={`text-sm font-medium ${statusColors[task.status as keyof typeof statusColors]}`}>
-                                                    {task.status}
+                                                <span className={`text-sm font-medium ${statusColors[task.Status as keyof typeof statusColors]}`}>
+                                                    {task.Status}
                                                 </span>
                                             </div>
 
-                                            {task.description && (
+                                            {task.Description && (
                                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                                                    {task.description}
+                                                    {task.Description}
                                                 </p>
                                             )}
 
                                             <div className="flex items-center gap-4 text-sm text-gray-500">
                                                 <div className="flex items-center gap-2">
                                                     <FolderKanban className="h-4 w-4" />
-                                                    <span>{task.taskList.project.projectName}</span>
+                                                    <span>{task.TaskLists.ListName}</span>
                                                 </div>
 
-                                                {task.dueDate && (
+                                                {task.DueDate && (
                                                     <div className="flex items-center gap-2">
                                                         <Calendar className="h-4 w-4" />
-                                                        <span>{formatDate(task.dueDate)}</span>
+                                                        <span>{formatDate(task.DueDate)}</span>
                                                     </div>
                                                 )}
                                             </div>

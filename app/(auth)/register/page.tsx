@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function SignInPage() {
+export default function RegisterPage() {
     const router = useRouter()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -19,34 +18,37 @@ export default function SignInPage() {
         setLoading(true)
 
         const formData = new FormData(e.currentTarget)
+        const username = formData.get('username') as string
         const email = formData.get('email') as string
         const password = formData.get('password') as string
+        const confirmPassword = formData.get('confirmPassword') as string
+        const name = formData.get('name') as string
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match')
+            setLoading(false)
+            return
+        }
 
         try {
-            console.log('Attempting signin with:', email)
-            const result = await signIn('credentials', {
-                email,
-                password,
-                redirect: false,
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password, name }),
             })
 
-            console.log('SignIn result:', result)
+            const data = await response.json()
 
-            if (result?.error) {
-                console.error('SignIn error:', result.error)
-                setError('Invalid email or password')
-            } else if (result?.ok) {
-                console.log('SignIn successful, redirecting...')
-                router.push('/dashboard')
-                router.refresh()
-            } else {
-                console.error('Unknown signin result:', result)
-                setError('An error occurred during signin')
+            if (!response.ok) {
+                setError(data.error || 'Registration failed')
+                setLoading(false)
+                return
             }
+
+            // Success! Redirect to login
+            router.push('/login?registered=true')
         } catch (err) {
-            console.error('Exception during signin:', err)
             setError('An error occurred. Please try again.')
-        } finally {
             setLoading(false)
         }
     }
@@ -55,9 +57,9 @@ export default function SignInPage() {
         <div className="flex min-h-screen items-center justify-center animated-gradient px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-3xl font-bold text-center">Welcome back</CardTitle>
+                    <CardTitle className="text-3xl font-bold text-center">Create an account</CardTitle>
                     <CardDescription className="text-center">
-                        Enter your credentials to access your account
+                        Enter your information to get started
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
@@ -68,6 +70,20 @@ export default function SignInPage() {
                             </div>
                         )}
                         <div className="space-y-2">
+                            <label htmlFor="username" className="text-sm font-medium">
+                                Username
+                            </label>
+                            <Input
+                                id="username"
+                                name="username"
+                                type="text"
+                                placeholder="johndoe"
+                                required
+                                minLength={3}
+                                autoFocus
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <label htmlFor="email" className="text-sm font-medium">
                                 Email
                             </label>
@@ -77,7 +93,17 @@ export default function SignInPage() {
                                 type="email"
                                 placeholder="your@email.com"
                                 required
-                                autoComplete="email"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="name" className="text-sm font-medium">
+                                Full Name (Optional)
+                            </label>
+                            <Input
+                                id="name"
+                                name="name"
+                                type="text"
+                                placeholder="John Doe"
                             />
                         </div>
                         <div className="space-y-2">
@@ -90,18 +116,31 @@ export default function SignInPage() {
                                 type="password"
                                 placeholder="••••••••"
                                 required
-                                autoComplete="current-password"
+                                minLength={6}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="confirmPassword" className="text-sm font-medium">
+                                Confirm Password
+                            </label>
+                            <Input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                placeholder="••••••••"
+                                required
+                                minLength={6}
                             />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col space-y-4">
                         <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? 'Signing in...' : 'Sign In'}
+                            {loading ? 'Creating account...' : 'Create Account'}
                         </Button>
                         <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                            Don&apos;t have an account?{' '}
-                            <Link href="/auth/signup" className="text-blue-600 hover:underline font-medium">
-                                Sign up
+                            Already have an account?{' '}
+                            <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                                Sign in
                             </Link>
                         </p>
                     </CardFooter>
