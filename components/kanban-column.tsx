@@ -3,9 +3,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { SortableTask } from './sortable-task'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
 
 interface Task {
     id: string
@@ -77,17 +74,6 @@ export function KanbanColumn({ list, projectId }: KanbanColumnProps) {
                         No tasks in this column
                     </div>
                 )}
-
-                <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
-                    <Button
-                        variant="outline"
-                        className="w-full mt-4 border-dashed"
-                        size="sm"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Task
-                    </Button>
-                </Link>
             </div>
         </div>
     )

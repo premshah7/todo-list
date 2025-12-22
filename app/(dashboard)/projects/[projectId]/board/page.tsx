@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Plus, ArrowLeft } from 'lucide-react'
 
+export const revalidate = 60
+
 export default async function ProjectBoardPage({
     params,
 }: {
     params: Promise<{ projectId: string }>
 }) {
     const { projectId } = await params
+    console.log('[ProjectBoardPage] Rendering for projectId:', projectId)
     const project = await getProject(projectId)
+    console.log('[ProjectBoardPage] getProject result:', project ? `Found project ${project.ProjectID}` : 'null')
 
     if (!project) {
         notFound()

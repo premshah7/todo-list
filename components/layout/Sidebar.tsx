@@ -15,6 +15,8 @@ import {
     UserCircle,
 } from 'lucide-react'
 
+import { useSession } from 'next-auth/react'
+
 const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/projects', icon: FolderKanban },
@@ -31,6 +33,15 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const pathname = usePathname()
+    const { data: session } = useSession()
+
+    const filteredNavigation = navigation.filter(item => {
+        if (item.name === 'Users') {
+            const roles = (session?.user as any)?.roles || []
+            return roles.includes('Admin') || roles.includes('Manager')
+        }
+        return true
+    })
 
     return (
         <>
@@ -50,6 +61,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     isOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 lg:w-20'
                 )}
             >
+                
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800">
@@ -71,10 +83,21 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </button>
                     </div>
 
+                    {/* Toggle button (desktop only) */}
+                    <div className="hidden lg:flex items-right p-4 border-t border-gray-200 dark:border-gray-800">
+                        <button
+                            onClick={onToggle}
+                            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
+                    </div>
+
                     {/* Navigation */}
                     <nav className="flex-1 overflow-y-auto py-4">
                         <ul className="space-y-1 px-2">
-                            {navigation.map((item) => {
+                            {filteredNavigation.map((item) => {
                                 const isActive = pathname === item.href
                                 return (
                                     <li key={item.name}>
@@ -98,16 +121,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </ul>
                     </nav>
 
-                    {/* Toggle button (desktop only) */}
-                    <div className="hidden lg:flex items-center justify-center p-4 border-t border-gray-200 dark:border-gray-800">
-                        <button
-                            onClick={onToggle}
-                            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-                            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-                        >
-                            <Menu className="w-5 h-5" />
-                        </button>
-                    </div>
+                    
                 </div>
             </aside>
         </>

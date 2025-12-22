@@ -1,4 +1,62 @@
-export default function DashboardPage() {
+import { getCurrentUser } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/db'
+import Link from 'next/link'
+import { formatDate } from '@/lib/utils'
+
+export const revalidate = 60
+
+export default async function DashboardPage() {
+    const user = await getCurrentUser()
+
+    if (!user) {
+        redirect('/login')
+    }
+
+    // Fetch stats
+    const totalProjects = await prisma.projects.count({
+        where: { CreatedBy: Number(user.id) }
+    })
+
+    const totalTasks = await prisma.tasks.count({
+        where: { AssignedTo: Number(user.id) }
+    })
+
+    const completedTasks = await prisma.tasks.count({
+        where: {
+            AssignedTo: Number(user.id),
+            Status: 'Completed'
+        }
+    })
+
+    const overdueTasks = await prisma.tasks.count({
+        where: {
+            AssignedTo: Number(user.id),
+            Status: { not: 'Completed' },
+            DueDate: { lt: new Date() }
+        }
+    })
+
+    // Fetch recent activity (Task History)
+    const recentActivity = await prisma.taskHistory.findMany({
+        where: {
+            OR: [
+                { ChangedBy: Number(user.id) },
+                { Tasks: { AssignedTo: Number(user.id) } }
+            ]
+        },
+        take: 5,
+        orderBy: { ChangeTime: 'desc' },
+        include: {
+            Tasks: {
+                select: { Title: true }
+            },
+            Users: {
+                select: { UserName: true }
+            }
+        }
+    })
+
     return (
         <div className="p-6">
             <div className="max-w-7xl mx-auto">
@@ -11,8 +69,8 @@ export default function DashboardPage() {
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">12</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Total Projects</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalProjects}</p>
                             </div>
                             <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
                                 <svg className="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +84,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">48</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalTasks}</p>
                             </div>
                             <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
                                 <svg className="w-6 h-6 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +98,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">32</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{completedTasks}</p>
                             </div>
                             <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full">
                                 <svg className="w-6 h-6 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +112,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Overdue</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">4</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{overdueTasks}</p>
                             </div>
                             <div className="bg-red-100 dark:bg-red-900 p-3 rounded-full">
                                 <svg className="w-6 h-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,27 +132,23 @@ export default function DashboardPage() {
                         </div>
                         <div className="p-6">
                             <div className="space-y-4">
-                                <div className="flex items-start space-x-3">
-                                    <div className="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-900 dark:text-white">New task assigned: "Update user dashboard"</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 hours ago</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start space-x-3">
-                                    <div className="w-2 h-2 mt-2 rounded-full bg-green-500"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-900 dark:text-white">Task completed: "Fix login bug"</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">5 hours ago</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start space-x-3">
-                                    <div className="w-2 h-2 mt-2 rounded-full bg-purple-500"></div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-900 dark:text-white">New project created: "Mobile App Redesign"</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">1 day ago</p>
-                                    </div>
-                                </div>
+                                {recentActivity.length === 0 ? (
+                                    <p className="text-sm text-gray-500">No recent activity</p>
+                                ) : (
+                                    recentActivity.map((activity) => (
+                                        <div key={activity.HistoryID} className="flex items-start space-x-3">
+                                            <div className="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-gray-900 dark:text-white">
+                                                    {activity.Users.UserName} {activity.ChangeType} task "{activity.Tasks.Title}"
+                                                </p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {formatDate(activity.ChangeTime)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -106,18 +160,20 @@ export default function DashboardPage() {
                         </div>
                         <div className="p-6">
                             <div className="space-y-3">
-                                <button className="w-full text-left px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                                <Link href="/projects/new" className="block w-full text-left px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
                                     <span className="text-sm font-medium text-blue-900 dark:text-blue-300">+ Create New Project</span>
-                                </button>
-                                <button className="w-full text-left px-4 py-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
-                                    <span className="text-sm font-medium text-green-900 dark:text-green-300">+ Add New Task</span>
-                                </button>
-                                <button className="w-full text-left px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors">
+                                </Link>
+                                <Link href="/my-tasks" className="block w-full text-left px-4 py-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                                    <span className="text-sm font-medium text-green-900 dark:text-green-300">View My Tasks</span>
+                                </Link>
+                                <Link href="/reports" className="block w-full text-left px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors">
                                     <span className="text-sm font-medium text-purple-900 dark:text-purple-300">📊 View Reports</span>
-                                </button>
-                                <button className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                                    <span className="text-sm font-medium text-gray-900 dark:text-gray-300">⚙️ Manage Users</span>
-                                </button>
+                                </Link>
+                                {((user as any).roles.includes('Admin') || (user as any).roles.includes('Manager')) && (
+                                    <Link href="/users" className="block w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-300">⚙️ Manage Users</span>
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>

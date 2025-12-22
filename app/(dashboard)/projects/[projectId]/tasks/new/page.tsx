@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,10 @@ export default function NewTaskPage() {
     const [users, setUsers] = useState<any[]>([])
     const [taskLists, setTaskLists] = useState<any[]>([])
     const [selectedListId, setSelectedListId] = useState<string>('')
+    const { data: session } = useSession()
+
+    // Check if user has permission to assign tasks
+    const canAssign = session?.user?.roles?.some(role => ['Admin', 'Manager'].includes(role))
 
     const defaultStatus = searchParams.get('status') || 'Pending'
 
@@ -162,23 +167,25 @@ export default function NewTaskPage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label htmlFor="assignedToId" className="text-sm font-medium">
-                                        Assign To
-                                    </label>
-                                    <select
-                                        id="assignedToId"
-                                        name="assignedToId"
-                                        className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
-                                    >
-                                        <option value="">Unassigned</option>
-                                        {users.map((user) => (
-                                            <option key={user.userId} value={user.userId}>
-                                                {user.user.name || user.user.username}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {canAssign && (
+                                    <div className="space-y-2">
+                                        <label htmlFor="assignedToId" className="text-sm font-medium">
+                                            Assign To
+                                        </label>
+                                        <select
+                                            id="assignedToId"
+                                            name="assignedToId"
+                                            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
+                                        >
+                                            <option value="">Unassigned</option>
+                                            {users.map((user) => (
+                                                <option key={user.userId} value={user.userId}>
+                                                    {user.user.name || user.user.username}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <label htmlFor="dueDate" className="text-sm font-medium">

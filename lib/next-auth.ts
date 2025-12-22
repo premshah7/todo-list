@@ -34,6 +34,7 @@ export const {
             credentials: {
                 email: { label: 'Email', type: 'email' },
                 password: { label: 'Password', type: 'password' },
+                role: { label: 'Role', type: 'text' },
             },
 
             async authorize(credentials) {
@@ -42,6 +43,7 @@ export const {
                 // Ensure types are strings
                 const email = credentials.email as string
                 const password = credentials.password as string
+                const role = (credentials as any).role as string
 
                 const user = await prisma.users.findUnique({
                     where: { Email: email },
@@ -61,6 +63,13 @@ export const {
 
                 if (!isValid) return null
 
+                // Verify strict role match
+                const userRoles = user.UserRoles.map(r => r.Roles.RoleName)
+                if (!userRoles.includes(role)) {
+                    console.log(`❌ Login denied: User ${email} does not have role ${role}`)
+                    return null
+                }
+
                 return {
                     id: user.UserID.toString(),
                     email: user.Email,
@@ -68,7 +77,7 @@ export const {
                     // valid return fields for v5 'user' object are limited, 
                     // we map custom fields in the jwt callback
                     username: user.UserName,
-                    roles: user.UserRoles.map(r => r.Roles.RoleName),
+                    roles: userRoles,
                 }
             },
         }),

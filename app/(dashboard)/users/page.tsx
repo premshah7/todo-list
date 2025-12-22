@@ -5,6 +5,8 @@ import { Users, Mail, ShieldAlert } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { redirect } from 'next/navigation'
 
+export const revalidate = 60
+
 export default async function UsersPage() {
     const currentUser = await getCurrentUser()
 
@@ -20,31 +22,14 @@ export default async function UsersPage() {
     let pageTitle = 'Users'
     let pageDescription = 'Manage team members and roles'
 
-    if (userRole === 'Admin') {
-        // Admin sees all users
+    if (userRole === 'Admin' || userRole === 'Manager') {
+        // Admin and Manager see all users
         whereClause = {}
         pageTitle = 'All Users'
-        pageDescription = 'View and manage all team members (Admin access)'
-    } else if (userRole === 'Manager') {
-        // Manager sees only users with "User" role
-        whereClause = {
-            UserRoles: {
-                some: {
-                    Roles: {
-                        RoleName: 'User'
-                    }
-                }
-            }
-        }
-        pageTitle = 'Team Members'
-        pageDescription = 'View users in your team (Manager access)'
+        pageDescription = 'View and manage all team members'
     } else {
-        // User sees only themselves
-        whereClause = {
-            UserID: currentUser.id
-        }
-        pageTitle = 'My Profile'
-        pageDescription = 'Your account information'
+        // Regular users are not allowed to view this page
+        redirect('/')
     }
 
     const users = await prisma.users.findMany({
@@ -73,10 +58,10 @@ export default async function UsersPage() {
                 <div className="flex items-center gap-3">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{pageTitle}</h1>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${userRole === 'Admin'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                            : userRole === 'Manager'
-                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                        : userRole === 'Manager'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                         }`}>
                         {userRole}
                     </span>
@@ -115,9 +100,21 @@ export default async function UsersPage() {
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600 dark:text-gray-400">Role:</span>
-                                        <span className="font-medium">
-                                            {user.UserRoles.map(ur => ur.Roles.RoleName).join(', ') || 'No role'}
-                                        </span>
+                                        <div className="flex flex-wrap gap-1 justify-end">
+                                            {user.UserRoles.map(ur => (
+                                                <span key={ur.Roles.RoleID} className={`px-2 py-0.5 text-xs font-medium rounded-full ${ur.Roles.RoleName === 'Admin'
+                                                    ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                                    : ur.Roles.RoleName === 'Manager'
+                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                                        : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                    }`}>
+                                                    {ur.Roles.RoleName}
+                                                </span>
+                                            ))}
+                                            {user.UserRoles.length === 0 && (
+                                                <span className="text-gray-500 italic">No role</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600 dark:text-gray-400">Tasks:</span>

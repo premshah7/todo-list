@@ -7,6 +7,8 @@ import { ArrowLeft, Calendar, User, Clock, MessageCircle } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { CommentForm } from '@/components/comment-form'
 
+export const revalidate = 60
+
 export default async function TaskDetailPage({
     params,
 }: {

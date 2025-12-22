@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, User, LogOut, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { signOut } from 'next-auth/react'
 
 interface HeaderProps {
     user: {
@@ -34,13 +35,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     }, [isDropdownOpen])
 
     async function handleLogout() {
-        try {
-            await fetch('/api/auth/logout', { method: 'POST' })
-            router.push('/login')
-            router.refresh()
-        } catch (error) {
-            console.error('Logout failed:', error)
-        }
+        await signOut({ callbackUrl: '/login' })
     }
 
     return (

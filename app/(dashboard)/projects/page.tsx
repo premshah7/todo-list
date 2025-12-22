@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Plus, Users, FolderKanban } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
+export const revalidate = 60
+
 export default async function ProjectsPage() {
     const rawProjects = await getProjects()
 

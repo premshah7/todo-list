@@ -31,6 +31,7 @@ export default function LoginPage() {
             const result = await import('next-auth/react').then(mod => mod.signIn('credentials', {
                 email,
                 password,
+                role: selectedRole,
                 redirect: false,
             }))
 

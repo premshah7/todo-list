@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 
+export const revalidate = 60
+
 export default async function HomePage() {
   const user = await getCurrentUser()
 

@@ -37,9 +37,9 @@ model TaskHistory {
   TaskID     Int
   ChangedBy  Int
   ChangeType String
-  OldValue   String?
-  NewValue   String?
   ChangeTime DateTime @default(now())
+  NewValue   String?
+  OldValue   String?
   Users      Users    @relation(fields: [ChangedBy], references: [UserID], onDelete: Cascade)
   Tasks      Tasks    @relation(fields: [TaskID], references: [TaskID], onDelete: Cascade)
 }
@@ -60,12 +60,12 @@ model Tasks {
   Description  String?
   Priority     String
   Status       String
-  Position     Int            @default(0)
   DueDate      DateTime?
   CreatedAt    DateTime       @default(now())
+  Position     Int            @default(0)
   TaskComments TaskComments[]
   TaskHistory  TaskHistory[]
-  Users        Users?         @relation(fields: [AssignedTo], references: [UserID], onDelete: SetNull)
+  Users        Users?         @relation(fields: [AssignedTo], references: [UserID])
   TaskLists    TaskLists      @relation(fields: [ListID], references: [ListID], onDelete: Cascade)
 }
 

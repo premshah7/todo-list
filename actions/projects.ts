@@ -109,10 +109,17 @@ export async function getProjects() {
         return []
     }
 
+    const isAdminOrManager = (session.user as any).roles?.some((role: string) =>
+        ['Admin', 'Manager'].includes(role)
+    )
+
+    const whereClause: any = {}
+    if (!isAdminOrManager) {
+        whereClause.CreatedBy = parseInt((session.user as any).id)
+    }
+
     const projects = await prisma.projects.findMany({
-        where: {
-            CreatedBy: parseInt((session.user as any).id),
-        },
+        where: whereClause,
         include: {
             Users: {
                 select: {
@@ -143,11 +150,22 @@ export async function getProject(projectId: string) {
         return null
     }
 
+    console.log('[getProject] Querying for ProjectID:', projectId, 'CreatedBy:', (session.user as any).id)
+
+    const isAdminOrManager = (session.user as any).roles?.some((role: string) =>
+        ['Admin', 'Manager'].includes(role)
+    )
+
+    const whereClause: any = {
+        ProjectID: parseInt(projectId),
+    }
+
+    if (!isAdminOrManager) {
+        whereClause.CreatedBy = parseInt((session.user as any).id)
+    }
+
     const project = await prisma.projects.findFirst({
-        where: {
-            ProjectID: parseInt(projectId),
-            CreatedBy: parseInt((session.user as any).id),
-        },
+        where: whereClause,
         include: {
             Users: {
                 select: {

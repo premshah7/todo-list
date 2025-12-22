@@ -60,24 +60,30 @@ export async function registerUser(formData: FormData) {
         })
         console.log('✅ [REGISTER] User created with ID:', user.UserID)
 
-        // Assign default "User" role
-        console.log('🔵 [REGISTER] Finding User role...')
-        const userRole = await prisma.roles.findUnique({
-            where: { RoleName: 'User' },
+        // Assign role (default to "User" if not specified or invalid)
+        const requestedRole = (formData.get('role') as string) || 'User'
+        console.log('🔵 [REGISTER] Requested role:', requestedRole)
+
+        const validRoles = ['User', 'Manager', 'Admin']
+        const roleName = validRoles.includes(requestedRole) ? requestedRole : 'User'
+
+        console.log('🔵 [REGISTER] Finding role:', roleName)
+        const role = await prisma.roles.findUnique({
+            where: { RoleName: roleName },
         })
 
-        if (userRole) {
-            console.log('✅ [REGISTER] User role found, ID:', userRole.RoleID)
+        if (role) {
+            console.log('✅ [REGISTER] Role found, ID:', role.RoleID)
             console.log('🔵 [REGISTER] Assigning role to user...')
             await prisma.userRoles.create({
                 data: {
                     UserID: user.UserID,
-                    RoleID: userRole.RoleID,
+                    RoleID: role.RoleID,
                 },
             })
             console.log('✅ [REGISTER] Role assigned successfully')
         } else {
-            console.log('⚠️  [REGISTER] User role not found in database')
+            console.log('⚠️  [REGISTER] Role not found in database:', roleName)
         }
 
         console.log('✅ [REGISTER] Registration completed successfully!')
