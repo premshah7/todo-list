@@ -52,8 +52,13 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center animated-gradient px-4">
-            <Card className="w-full max-w-md">
+        <div className="flex min-h-screen items-center justify-center px-4 relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-background mix-blend-multiply" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] opacity-20" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-600/20 rounded-full blur-[128px] opacity-20" />
+
+            <Card className="w-full max-w-md relative z-10">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-3xl font-bold text-center">Create an account</CardTitle>
                     <CardDescription className="text-center">
@@ -63,7 +68,7 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
                         {error && (
-                            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
+                            <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
                                 {error}
                             </div>
                         )}
@@ -113,11 +118,11 @@ export default function RegisterPage() {
                                 name="role"
                                 value={selectedRole}
                                 onChange={(e) => setSelectedRole(e.target.value)}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className="flex h-11 w-full rounded-xl border border-white/5 bg-white/5 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 text-foreground transition-all duration-300 outline-none"
                                 required
                             >
                                 {ROLES.map((role) => (
-                                    <option key={role} value={role}>
+                                    <option key={role} value={role} className="bg-black text-white">
                                         {role}
                                     </option>
                                 ))}
@@ -154,9 +159,9 @@ export default function RegisterPage() {
                         <Button type="submit" className="w-full" disabled={loading}>
                             {loading ? 'Creating account...' : 'Create Account'}
                         </Button>
-                        <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-center text-muted-foreground">
                             Already have an account?{' '}
-                            <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                            <Link href="/login" className="text-primary hover:text-primary/80 hover:underline font-medium font-tech">
                                 Sign in
                             </Link>
                         </p>

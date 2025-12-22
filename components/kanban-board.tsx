@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { KanbanColumn } from './kanban-column'
 import { TaskCard } from './task-card'
 import { moveTask } from '@/actions/tasks'
+import { TaskDetailsPanel } from './board/task-details-panel'
 
 interface Task {
     id: string
@@ -102,30 +103,46 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
         setActiveId(null)
     }
 
-    return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-        >
-            <div className="flex gap-6 overflow-x-auto pb-4">
-                {taskLists.map((list) => (
-                    <KanbanColumn
-                        key={list.id}
-                        list={list}
-                        projectId={projectId}
-                    />
-                ))}
-            </div>
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
-            <DragOverlay>
-                {activeTask ? (
-                    <div className="rotate-3 opacity-90">
-                        <TaskCard task={activeTask} />
-                    </div>
-                ) : null}
-            </DragOverlay>
-        </DndContext>
+    // ... (rest of sensors and activeTask logic)
+
+    // ... (drag handlers)
+
+    return (
+        <>
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCorners}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+            >
+                <div className="flex gap-6 overflow-x-auto pb-4">
+                    {taskLists.map((list) => (
+                        <KanbanColumn
+                            key={list.id}
+                            list={list}
+                            projectId={projectId}
+                            onTaskClick={setSelectedTask}
+                        />
+                    ))}
+                </div>
+
+                <DragOverlay>
+                    {activeTask ? (
+                        <div className="rotate-3 opacity-90">
+                            <TaskCard task={activeTask} />
+                        </div>
+                    ) : null}
+                </DragOverlay>
+            </DndContext>
+
+            {/* Task Details Slide-over */}
+            <TaskDetailsPanel
+                task={selectedTask}
+                isOpen={!!selectedTask}
+                onClose={() => setSelectedTask(null)}
+            />
+        </>
     )
 }

@@ -1,6 +1,7 @@
 import { getMyTasks } from '@/actions/tasks'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Calendar, FolderKanban } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
@@ -10,30 +11,37 @@ export default async function MyTasksPage() {
     const tasks = await getMyTasks()
 
     const priorityColors = {
-        Low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-        Medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-        High: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        Low: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+        Medium: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+        High: 'bg-red-500/10 text-red-400 border border-red-500/20',
     }
 
     const statusColors = {
-        Pending: 'text-orange-600 dark:text-orange-400',
-        'In Progress': 'text-blue-600 dark:text-blue-400',
-        Completed: 'text-green-600 dark:text-green-400',
+        Pending: 'text-yellow-400 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]',
+        'In Progress': 'text-primary drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]',
+        Completed: 'text-green-400 drop-shadow-[0_0_5px_rgba(34,197,94,0.5)]',
     }
 
     return (
         <div className="p-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Tasks</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">All tasks assigned to you</p>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-white font-tech uppercase tracking-wider text-glow">My Tasks</h1>
+                    <p className="text-muted-foreground mt-1">All tasks assigned to you</p>
+                </div>
+                <Link href="/tasks/new">
+                    <Button>
+                        New Task
+                    </Button>
+                </Link>
             </div>
 
             {tasks.length === 0 ? (
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                        <FolderKanban className="h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No tasks assigned</h3>
-                        <p className="text-gray-500 text-center max-w-sm">
+                        <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2 text-white">No tasks assigned</h3>
+                        <p className="text-muted-foreground text-center max-w-sm">
                             You don't have any tasks assigned to you yet.
                         </p>
                     </CardContent>
@@ -44,18 +52,18 @@ export default async function MyTasksPage() {
                         <Link
                             key={task.TaskID}
                             href={`/tasks/${task.TaskID}`}
-                            className="block"
+                            className="block group"
                         >
-                            <Card className="hover:shadow-md transition-shadow">
+                            <Card className="hover:shadow-[0_0_15px_rgba(0,243,255,0.2)] transition-all duration-300 hover:border-primary/50 group-hover:bg-white/5">
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="font-semibold text-lg">{task.Title}</h3>
+                                                <h3 className="font-semibold text-lg text-white group-hover:text-primary transition-colors">{task.Title}</h3>
                                                 <span className={`text-xs px-2 py-1 rounded-full ${priorityColors[task.Priority as keyof typeof priorityColors]}`}>
                                                     {task.Priority}
                                                 </span>
-                                                <span className={`text-sm font-medium ${statusColors[task.Status as keyof typeof statusColors]}`}>
+                                                <span className={`text-sm font-medium font-tech uppercase tracking-wide ${statusColors[task.Status as keyof typeof statusColors]}`}>
                                                     {task.Status}
                                                 </span>
                                             </div>

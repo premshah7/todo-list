@@ -25,8 +25,8 @@ export default async function ProjectsPage() {
         <div className="p-8">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Projects</h1>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your projects and teams</p>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Projects</h1>
+                    <p className="text-muted-foreground mt-1">Manage your projects and teams</p>
                 </div>
                 <Link href="/projects/new">
                     <Button>
@@ -39,9 +39,9 @@ export default async function ProjectsPage() {
             {projects.length === 0 ? (
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                        <FolderKanban className="h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-                        <p className="text-gray-500 mb-4 text-center max-w-sm">
+                        <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2 text-white">No projects yet</h3>
+                        <p className="text-muted-foreground mb-4 text-center max-w-sm">
                             Get started by creating your first project to organize your tasks
                         </p>
                         <Link href="/projects/new">
@@ -52,18 +52,18 @@ export default async function ProjectsPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {projects.map((project) => (
-                        <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                        <Card key={project.id} className="hover:border-primary/50 group">
                             <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    <span className="truncate">{project.projectName}</span>
+                                <CardTitle className="flex items-center justify-between text-white tracking-tight">
+                                    <span className="truncate group-hover:text-primary transition-colors">{project.projectName}</span>
                                 </CardTitle>
-                                <CardDescription className="line-clamp-2">
+                                <CardDescription className="line-clamp-2 text-muted-foreground/80">
                                     {project.description || 'No description'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                                    <div className="flex items-center">
+                                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                                    <div className="flex items-center text-primary">
                                         <Users className="h-4 w-4 mr-1" />
                                         Task Lists: {project._count.members} {/* Temporary filler */}
                                     </div>

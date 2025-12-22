@@ -19,9 +19,10 @@ interface Task {
 
 interface SortableTaskProps {
     task: Task
+    onClick: (task: Task) => void
 }
 
-export function SortableTask({ task }: SortableTaskProps) {
+export function SortableTask({ task, onClick }: SortableTaskProps) {
     const {
         attributes,
         listeners,
@@ -44,7 +45,7 @@ export function SortableTask({ task }: SortableTaskProps) {
             {...attributes}
             {...listeners}
         >
-            <TaskCard task={task} />
+            <TaskCard task={task} onClick={() => onClick(task)} />
         </div>
     )
 }

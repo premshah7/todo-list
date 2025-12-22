@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { Calendar, User, AlertCircle } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { Calendar, User, MessageSquare, Paperclip, MoreHorizontal, Clock, AlertCircle } from 'lucide-react'
+import { formatDate, cn } from '@/lib/utils'
 
 interface Task {
     id: string
@@ -19,47 +18,84 @@ interface Task {
 
 interface TaskCardProps {
     task: Task
+    onClick?: () => void
 }
 
-const priorityColors = {
-    Low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-    Medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    High: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+const priorityConfig = {
+    Low: { color: 'text-slate-400', bg: 'bg-slate-400/10', border: 'border-slate-400/20' },
+    Medium: { color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
+    High: { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20' },
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, onClick }: TaskCardProps) {
+    const priorityStyle = priorityConfig[task.priority as keyof typeof priorityConfig] || priorityConfig.Low
+
     return (
-        <Link href={`/tasks/${task.id}`}>
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-sm line-clamp-2 flex-1">{task.title}</h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ml-2 ${priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.Medium}`}>
-                        {task.priority}
-                    </span>
-                </div>
+        <div
+            onClick={onClick}
+            className="group relative bg-[#1c1c1c] border border-white/5 rounded-2xl p-4 shadow-sm hover:shadow-xl hover:shadow-black/20 hover:border-primary/50 hover:bg-[#222224] transition-all duration-300 cursor-pointer active:scale-[0.98]"
+        >
+            {/* Header: Priority & More Menu */}
+            <div className="flex items-center justify-between mb-3">
+                <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border tracking-wide uppercase", priorityStyle.bg, priorityStyle.color, priorityStyle.border)}>
+                    {task.priority}
+                </span>
+                <button className="text-muted-foreground hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                    <MoreHorizontal className="w-4 h-4" />
+                </button>
+            </div>
 
-                {task.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
-                        {task.description}
-                    </p>
-                )}
+            {/* Title */}
+            <h4 className="font-semibold text-sm text-gray-200 line-clamp-2 mb-1.5 group-hover:text-primary transition-colors leading-snug">
+                {task.title}
+            </h4>
 
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                    {task.assignedTo && (
-                        <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            <span>{task.assignedTo.name || task.assignedTo.username}</span>
-                        </div>
-                    )}
+            {/* Description Preview */}
+            {task.description && (
+                <p className="text-xs text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                    {task.description}
+                </p>
+            )}
+
+            {/* Footer: Meta & Assignee */}
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5 group-hover:border-white/10 transition-colors">
+                <div className="flex items-center gap-3">
+                    {/* Mock Comment/Attach Counts */}
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-gray-400 transition-colors">
+                        <MessageSquare className="w-3 h-3" />
+                        <span>2</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground group-hover:text-gray-400 transition-colors">
+                        <Paperclip className="w-3 h-3" />
+                        <span>1</span>
+                    </div>
 
                     {task.dueDate && (
-                        <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
+                        <div className={cn("flex items-center gap-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded",
+                            // Simple logic: highlight if date is close - for now just generic style
+                            "text-gray-400 bg-white/5"
+                        )}>
+                            <Clock className="w-3 h-3" />
                             <span>{formatDate(task.dueDate)}</span>
                         </div>
                     )}
                 </div>
+
+                {/* Assignee Avatar */}
+                {task.assignedTo ? (
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-primary p-[1px] shadow-sm">
+                        <div className="w-full h-full rounded-full bg-[#1c1c1c] flex items-center justify-center">
+                            <span className="text-[9px] font-bold text-white leading-none">
+                                {task.assignedTo.username.charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="w-6 h-6 rounded-full border border-dashed border-white/20 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+                        <User className="w-3 h-3 text-muted-foreground" />
+                    </div>
+                )}
             </div>
-        </Link>
+        </div>
     )
 }

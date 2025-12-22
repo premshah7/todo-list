@@ -44,7 +44,7 @@ export async function createTask(listId: string, formData: FormData) {
                 Description: validated.description,
                 Priority: validated.priority,
                 Status: validated.status,
-                AssignedTo: validated.assignedToId ? Number(validated.assignedToId) : null,
+                AssignedTo: validated.assignedToId ? Number(validated.assignedToId) : Number(session.user.id),
                 DueDate: validated.dueDate ? new Date(validated.dueDate) : null,
                 ListID: Number(listId),
                 Position: (maxPosition._max.Position ?? -1) + 1,
