@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,17 +9,15 @@ import { createTask } from '@/actions/tasks'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-interface NewTaskPageProps {
-    params: { projectId: string }
-}
-
-export default function NewTaskPage({ params }: NewTaskPageProps) {
+export default function NewTaskPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
+    const params = useParams<{ projectId: string }>()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const [users, setUsers] = useState<any[]>([])
     const [taskLists, setTaskLists] = useState<any[]>([])
+    const [selectedListId, setSelectedListId] = useState<string>('')
 
     const defaultStatus = searchParams.get('status') || 'Pending'
 
@@ -30,11 +28,24 @@ export default function NewTaskPage({ params }: NewTaskPageProps) {
             if (response.ok) {
                 const data = await response.json()
                 setUsers(data.members || [])
-                setTaskLists(data.taskLists || [])
+                const lists = data.taskLists || []
+                setTaskLists(lists)
+
+                // Set default selection based on status param
+                if (lists.length > 0) {
+                    const defaultList = lists.find((l: any) => l.listName === defaultStatus)
+                    if (defaultList) {
+                        setSelectedListId(defaultList.id)
+                    } else if (!selectedListId) {
+                        setSelectedListId(lists[0].id)
+                    }
+                }
             }
         }
-        fetchData()
-    }, [params.projectId])
+        if (params.projectId) {
+            fetchData()
+        }
+    }, [params.projectId, defaultStatus])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -64,12 +75,12 @@ export default function NewTaskPage({ params }: NewTaskPageProps) {
         <div className="p-8">
             <div className="max-w-2xl mx-auto">
                 <div className="flex items-center gap-4 mb-6">
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href={`/projects/${params.projectId}/board`}>
+                    <Link href={`/projects/${params.projectId}/board`}>
+                        <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Board
-                        </Link>
-                    </Button>
+                        </Button>
+                    </Link>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create New Task</h1>
                 </div>
 
@@ -135,15 +146,18 @@ export default function NewTaskPage({ params }: NewTaskPageProps) {
                                         id="listId"
                                         name="listId"
                                         required
+                                        value={selectedListId}
+                                        onChange={(e) => setSelectedListId(e.target.value)}
                                         className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
                                     >
+                                        <option value="" disabled>Select a status</option>
                                         {taskLists.map((list) => (
-                                            <option key={list.id} value={list.id} selected={list.listName === defaultStatus}>
+                                            <option key={list.id} value={list.id} className='text-black'>
                                                 {list.listName}
                                             </option>
                                         ))}
                                     </select>
-                                    <input type="hidden" name="status" value={defaultStatus} />
+                                    <input type="hidden" name="status" value={taskLists.find(l => l.id === selectedListId)?.listName || defaultStatus} />
                                 </div>
                             </div>
 

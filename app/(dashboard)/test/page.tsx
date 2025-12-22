@@ -7,13 +7,13 @@ export default async function TestDashPage() {
         const userId = (session?.user as any)?.id
 
         // Test the exact myTasks query from dashboard
-        const myTasks = await prisma.task.findMany({
-            where: { assignedToId: userId },
+        const myTasks = await prisma.tasks.findMany({
+            where: { AssignedTo: userId },
             include: {
-                taskList: {
+                TaskLists: {
                     select: {
-                        listName: true,
-                        project: {
+                        ListName: true,
+                        Projects: {
                             select: {
                                 projectName: true,
                                 id: true,

@@ -8,38 +8,56 @@ import { Plus, ArrowLeft } from 'lucide-react'
 export default async function ProjectBoardPage({
     params,
 }: {
-    params: { projectId: string }
+    params: Promise<{ projectId: string }>
 }) {
-    const project = await getProject(params.projectId)
+    const { projectId } = await params
+    const project = await getProject(projectId)
 
     if (!project) {
         notFound()
     }
 
+    const taskLists = project.TaskLists.map(list => ({
+        id: list.ListID.toString(),
+        listName: list.ListName,
+        tasks: list.Tasks.map(task => ({
+            id: task.TaskID.toString(),
+            title: task.Title,
+            description: task.Description,
+            priority: task.Priority,
+            status: task.Status,
+            dueDate: task.DueDate,
+            assignedTo: task.Users ? {
+                username: task.Users.UserName,
+                name: task.Users.UserName
+            } : null
+        }))
+    }))
+
     return (
         <div className="p-8">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href="/projects">
+                    <Link href="/projects">
+                        <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back
-                        </Link>
-                    </Button>
+                        </Button>
+                    </Link>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.projectName}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.ProjectName}</h1>
                         <p className="text-gray-600 dark:text-gray-400 mt-1">Kanban Board</p>
                     </div>
                 </div>
-                <Button asChild>
-                    <Link href={`/projects/${project.id}/tasks/new`}>
+                <Link href={`/projects/${project.ProjectID}/tasks/new`}>
+                    <Button>
                         <Plus className="h-4 w-4 mr-2" />
                         New Task
-                    </Link>
-                </Button>
+                    </Button>
+                </Link>
             </div>
 
-            <KanbanBoard taskLists={project.taskLists} projectId={project.id} />
+            <KanbanBoard taskLists={taskLists} projectId={project.ProjectID.toString()} />
         </div>
     )
 }

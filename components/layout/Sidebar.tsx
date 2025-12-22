@@ -12,6 +12,7 @@ import {
     Users,
     Menu,
     X,
+    UserCircle,
 } from 'lucide-react'
 
 const navigation = [
@@ -19,6 +20,7 @@ const navigation = [
     { name: 'Projects', href: '/projects', icon: FolderKanban },
     { name: 'My Tasks', href: '/my-tasks', icon: CheckSquare },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: 'Profile', href: '/profile', icon: UserCircle },
     { name: 'Users', href: '/users', icon: Users },
 ]
 

@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
+const ROLES = ['User', 'Admin', 'Manager'] as const
+
 export default function RegisterPage() {
     const router = useRouter()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [selectedRole, setSelectedRole] = useState<string>('User')
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -18,11 +21,8 @@ export default function RegisterPage() {
         setLoading(true)
 
         const formData = new FormData(e.currentTarget)
-        const username = formData.get('username') as string
-        const email = formData.get('email') as string
         const password = formData.get('password') as string
         const confirmPassword = formData.get('confirmPassword') as string
-        const name = formData.get('name') as string
 
         if (password !== confirmPassword) {
             setError('Passwords do not match')
@@ -31,16 +31,14 @@ export default function RegisterPage() {
         }
 
         try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password, name }),
-            })
+            // Import action dynamically or statically
+            // We'll import it at the top level normally, but for this edit block:
+            const { registerUser } = await import('@/actions/auth')
 
-            const data = await response.json()
+            const result = await registerUser(formData)
 
-            if (!response.ok) {
-                setError(data.error || 'Registration failed')
+            if (result.error) {
+                setError(result.error)
                 setLoading(false)
                 return
             }
@@ -105,6 +103,25 @@ export default function RegisterPage() {
                                 type="text"
                                 placeholder="John Doe"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="role" className="text-sm font-medium">
+                                Role
+                            </label>
+                            <select
+                                id="role"
+                                name="role"
+                                value={selectedRole}
+                                onChange={(e) => setSelectedRole(e.target.value)}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                required
+                            >
+                                {ROLES.map((role) => (
+                                    <option key={role} value={role}>
+                                        {role}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="password" className="text-sm font-medium">

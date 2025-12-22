@@ -78,17 +78,16 @@ export function KanbanColumn({ list, projectId }: KanbanColumnProps) {
                     </div>
                 )}
 
-                <Button
-                    asChild
-                    variant="outline"
-                    className="w-full mt-4 border-dashed"
-                    size="sm"
-                >
-                    <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
+                <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
+                    <Button
+                        variant="outline"
+                        className="w-full mt-4 border-dashed"
+                        size="sm"
+                    >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Task
-                    </Link>
-                </Button>
+                    </Button>
+                </Link>
             </div>
         </div>
     )

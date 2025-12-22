@@ -1,10 +1,54 @@
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Mail } from 'lucide-react'
+import { Users, Mail, ShieldAlert } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { redirect } from 'next/navigation'
 
 export default async function UsersPage() {
+    const currentUser = await getCurrentUser()
+
+    // Redirect if not authenticated
+    if (!currentUser) {
+        redirect('/login')
+    }
+
+    const userRole = currentUser.roles[0] // Primary role
+
+    // Build query based on role
+    let whereClause: any = {}
+    let pageTitle = 'Users'
+    let pageDescription = 'Manage team members and roles'
+
+    if (userRole === 'Admin') {
+        // Admin sees all users
+        whereClause = {}
+        pageTitle = 'All Users'
+        pageDescription = 'View and manage all team members (Admin access)'
+    } else if (userRole === 'Manager') {
+        // Manager sees only users with "User" role
+        whereClause = {
+            UserRoles: {
+                some: {
+                    Roles: {
+                        RoleName: 'User'
+                    }
+                }
+            }
+        }
+        pageTitle = 'Team Members'
+        pageDescription = 'View users in your team (Manager access)'
+    } else {
+        // User sees only themselves
+        whereClause = {
+            UserID: currentUser.id
+        }
+        pageTitle = 'My Profile'
+        pageDescription = 'Your account information'
+    }
+
     const users = await prisma.users.findMany({
+        where: whereClause,
         include: {
             UserRoles: {
                 include: {
@@ -26,54 +70,74 @@ export default async function UsersPage() {
     return (
         <div className="p-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Users</h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">Manage team members and roles</p>
+                <div className="flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{pageTitle}</h1>
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${userRole === 'Admin'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                            : userRole === 'Manager'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        }`}>
+                        {userRole}
+                    </span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">{pageDescription}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {users.map((user) => (
-                    <Card key={user.UserID}>
-                        <CardHeader>
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                        <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            {users.length === 0 ? (
+                <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                        <ShieldAlert className="h-12 w-12 text-gray-400 mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400">No users found</p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {users.map((user) => (
+                        <Card key={user.UserID}>
+                            <CardHeader>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                            <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-lg">{user.UserName}</CardTitle>
+                                            <CardDescription className="flex items-center gap-1">
+                                                <Mail className="h-3 w-3" />
+                                                {user.Email}
+                                            </CardDescription>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <CardTitle className="text-lg">{user.UserName}</CardTitle>
-                                        <CardDescription className="flex items-center gap-1">
-                                            <Mail className="h-3 w-3" />
-                                            {user.Email}
-                                        </CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Role:</span>
+                                        <span className="font-medium">
+                                            {user.UserRoles.map(ur => ur.Roles.RoleName).join(', ') || 'No role'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Tasks:</span>
+                                        <span className="font-medium">{user._count.Tasks}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Projects:</span>
+                                        <span className="font-medium">{user._count.Projects}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Joined:</span>
+                                        <span className="font-medium">{formatDate(user.CreatedAt)}</span>
                                     </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Role:</span>
-                                    <span className="font-medium">
-                                        {user.UserRoles.map(ur => ur.Roles.RoleName).join(', ') || 'No role'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Tasks:</span>
-                                    <span className="font-medium">{user._count.Tasks}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Projects:</span>
-                                    <span className="font-medium">{user._count.Projects}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Joined:</span>
-                                    <span className="font-medium">{formatDate(user.CreatedAt)}</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }
+

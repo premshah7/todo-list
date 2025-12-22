@@ -6,7 +6,18 @@ import { Plus, Users, FolderKanban } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 export default async function ProjectsPage() {
-    const projects = await getProjects()
+    const rawProjects = await getProjects()
+
+    // Map Prisma data to frontend structure
+    const projects = rawProjects.map(p => ({
+        id: p.ProjectID,
+        projectName: p.ProjectName,
+        description: p.Description,
+        createdAt: p.CreatedAt,
+        _count: {
+            members: p.TaskLists.reduce((acc, list) => acc + list._count.Tasks, 0) // Approximation or fix query later
+        }
+    }))
 
     return (
         <div className="p-8">
@@ -15,12 +26,12 @@ export default async function ProjectsPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Projects</h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your projects and teams</p>
                 </div>
-                <Button asChild>
-                    <Link href="/projects/new">
+                <Link href="/projects/new">
+                    <Button>
                         <Plus className="h-4 w-4 mr-2" />
                         New Project
-                    </Link>
-                </Button>
+                    </Button>
+                </Link>
             </div>
 
             {projects.length === 0 ? (
@@ -31,9 +42,9 @@ export default async function ProjectsPage() {
                         <p className="text-gray-500 mb-4 text-center max-w-sm">
                             Get started by creating your first project to organize your tasks
                         </p>
-                        <Button asChild>
-                            <Link href="/projects/new">Create Project</Link>
-                        </Button>
+                        <Link href="/projects/new">
+                            <Button>Create Project</Button>
+                        </Link>
                     </CardContent>
                 </Card>
             ) : (
@@ -52,21 +63,21 @@ export default async function ProjectsPage() {
                                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                                     <div className="flex items-center">
                                         <Users className="h-4 w-4 mr-1" />
-                                        {project._count.members} members
+                                        Task Lists: {project._count.members} {/* Temporary filler */}
                                     </div>
                                     <span>{formatDate(project.createdAt)}</span>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button asChild variant="default" className="flex-1">
-                                        <Link href={`/projects/${project.id}/board`}>
+                                    <Link href={`/projects/${project.id}/board`} className="flex-1">
+                                        <Button variant="default" className="w-full">
                                             View Board
-                                        </Link>
-                                    </Button>
-                                    <Button asChild variant="outline">
-                                        <Link href={`/projects/${project.id}`}>
+                                        </Button>
+                                    </Link>
+                                    <Link href={`/projects/${project.id}`}>
+                                        <Button variant="outline">
                                             Details
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>

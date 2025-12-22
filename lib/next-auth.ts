@@ -1,8 +1,19 @@
 // lib/next-auth.ts
-import NextAuth from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from '@/lib/prisma'
+import NextAuth, { DefaultSession } from 'next-auth'
+import Credentials from 'next-auth/providers/credentials'
+import { prisma } from '@/lib/db'
 import { verifyPassword } from '@/lib/auth'
+
+// Extend the built-in session type
+declare module "next-auth" {
+    interface Session {
+        user: {
+            id: string
+            roles: string[]
+            username: string
+        } & DefaultSession["user"]
+    }
+}
 
 export const {
     handlers,
@@ -10,14 +21,15 @@ export const {
     signIn,
     signOut,
 } = NextAuth({
-    secret: process.env.AUTH_SECRET,
+    // Move secret to standard AUTH_SECRET env var which NextAuth v5 picks up automatically
+    // or keep it explicitly if needed, but usually not required if env var is set.
 
     session: {
         strategy: 'jwt',
     },
 
     providers: [
-        CredentialsProvider({
+        Credentials({
             name: 'Credentials',
             credentials: {
                 email: { label: 'Email', type: 'email' },
@@ -27,8 +39,12 @@ export const {
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) return null
 
+                // Ensure types are strings
+                const email = credentials.email as string
+                const password = credentials.password as string
+
                 const user = await prisma.users.findUnique({
-                    where: { Email: credentials.email },
+                    where: { Email: email },
                     include: {
                         UserRoles: {
                             include: { Roles: true },
@@ -39,7 +55,7 @@ export const {
                 if (!user) return null
 
                 const isValid = await verifyPassword(
-                    credentials.password,
+                    password,
                     user.PasswordHash
                 )
 
@@ -49,6 +65,8 @@ export const {
                     id: user.UserID.toString(),
                     email: user.Email,
                     name: user.UserName,
+                    // valid return fields for v5 'user' object are limited, 
+                    // we map custom fields in the jwt callback
                     username: user.UserName,
                     roles: user.UserRoles.map(r => r.Roles.RoleName),
                 }
@@ -60,7 +78,9 @@ export const {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
-                token.username = user.name
+                // @ts-expect-error - user type extension is tricky in authorize return
+                token.username = user.username
+                // @ts-expect-error
                 token.roles = user.roles
             }
             return token
@@ -77,6 +97,6 @@ export const {
     },
 
     pages: {
-        signIn: '/auth/signin',
+        signIn: '/login', // Unified login page
     },
 })

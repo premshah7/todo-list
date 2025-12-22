@@ -1,4 +1,4 @@
-import { getTask, addComment } from '@/actions/tasks'
+import { getTask } from '@/actions/tasks'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,12 +10,54 @@ import { CommentForm } from '@/components/comment-form'
 export default async function TaskDetailPage({
     params,
 }: {
-    params: { taskId: string }
+    params: Promise<{ taskId: string }>
 }) {
-    const task = await getTask(params.taskId)
+    const { taskId } = await params
+    const rawTask = await getTask(taskId)
 
-    if (!task) {
+    if (!rawTask) {
         notFound()
+    }
+
+    // Map Prisma data to frontend structure
+    const task = {
+        id: rawTask.TaskID,
+        title: rawTask.Title,
+        description: rawTask.Description,
+        priority: rawTask.Priority,
+        status: rawTask.Status,
+        dueDate: rawTask.DueDate,
+        assignedTo: rawTask.Users ? {
+            name: rawTask.Users.UserName,
+            username: rawTask.Users.UserName
+        } : null,
+        taskList: {
+            listName: rawTask.TaskLists.ListName,
+            project: {
+                id: rawTask.TaskLists.Projects.ProjectID,
+                projectName: rawTask.TaskLists.Projects.ProjectName
+            }
+        },
+        comments: rawTask.TaskComments.map(c => ({
+            id: c.CommentID,
+            commentText: c.CommentText,
+            createdAt: c.CreatedAt,
+            user: {
+                name: c.Users.UserName,
+                username: c.Users.UserName
+            }
+        })),
+        histories: rawTask.TaskHistory.map(h => ({
+            id: h.HistoryID,
+            changeType: h.ChangeType,
+            oldValue: h.OldValue,
+            newValue: h.NewValue,
+            createdAt: h.ChangeTime,
+            user: {
+                name: h.Users.UserName,
+                username: h.Users.UserName
+            }
+        }))
     }
 
     const priorityColors = {
@@ -34,12 +76,12 @@ export default async function TaskDetailPage({
         <div className="p-8">
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center gap-4 mb-6">
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href={`/projects/${task.taskList.project.id}/board`}>
+                    <Link href={`/projects/${task.taskList.project.id}/board`}>
+                        <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Board
-                        </Link>
-                    </Button>
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -102,7 +144,7 @@ export default async function TaskDetailPage({
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <CommentForm taskId={task.id} />
+                                <CommentForm taskId={task.id.toString()} />
 
                                 <div className="space-y-4 mt-6">
                                     {task.comments.length === 0 ? (

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { auth } from "@/lib/next-auth"
+import { NextResponse } from "next/server"
 
 // Public routes that don't require authentication
 const publicRoutes = ['/login', '/register', '/api/auth/login', '/api/auth/register']
@@ -7,31 +7,29 @@ const publicRoutes = ['/login', '/register', '/api/auth/login', '/api/auth/regis
 // API routes that require authentication
 const protectedApiRoutes = ['/api/projects', '/api/tasks', '/api/my-tasks', '/api/admin']
 
-export default function proxy(request: NextRequest) {
-    const { pathname } = request.nextUrl
-    const token = request.cookies.get('auth-token')
-
-    // Check if this is a public route
-    const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
-    const isProtectedApi = protectedApiRoutes.some((route) => pathname.startsWith(route))
+export default auth((req) => {
+    const { nextUrl } = req
+    const isLoggedIn = !!req.auth
+    const isPublicRoute = publicRoutes.some((route) => nextUrl.pathname.startsWith(route))
+    const isProtectedApi = protectedApiRoutes.some((route) => nextUrl.pathname.startsWith(route))
 
     // If accessing protected API without token, return 401
-    if (isProtectedApi && !token) {
+    if (isProtectedApi && !isLoggedIn) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // If not authenticated and trying to access protected page, redirect to login
-    if (!isPublicRoute && !token && !pathname.startsWith('/api')) {
-        return NextResponse.redirect(new URL('/login', request.url))
+    if (!isPublicRoute && !isLoggedIn && !nextUrl.pathname.startsWith('/api')) {
+        return NextResponse.redirect(new URL('/login', nextUrl))
     }
 
     // If authenticated and trying to access login/register, redirect to dashboard
-    if (token && (pathname === '/login' || pathname === '/register')) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register')) {
+        return NextResponse.redirect(new URL('/dashboard', nextUrl))
     }
 
     return NextResponse.next()
-}
+})
 
 export const config = {
     matcher: [

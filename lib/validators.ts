@@ -1,17 +1,22 @@
 import { z } from 'zod'
 
+// Role enum for validation
+export const roleEnum = z.enum(['User', 'Admin', 'Manager'])
+
 // Registration validation
 export const registerSchema = z.object({
     username: z.string().min(3).max(50),
     email: z.string().email(),
     password: z.string().min(6),
     name: z.string().optional(),
+    role: roleEnum,
 })
 
 // Login validation
 export const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(1),
+    role: roleEnum,
 })
 
 // Task validation
