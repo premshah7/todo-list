@@ -29,35 +29,40 @@
 }
 
 :root {
-  /* Soft Glass / Matte Dark Palette */
-  --background: #121212;
-  --foreground: #fafafa;
+  /* Behance-style Deep Dark / Neon Palette */
+  --background: #0f1117;
+  /* Deep Blue-Gray */
+  --foreground: #e2e8f0;
+  /* Slate 200 */
 
-  --card: #1c1c1c;
-  --card-foreground: #fafafa;
+  --card: #1e2028;
+  /* Lighter Deep Gray */
+  --card-foreground: #e2e8f0;
 
-  --popover: #1c1c1c;
-  --popover-foreground: #fafafa;
+  --popover: #1e2028;
+  --popover-foreground: #e2e8f0;
 
-  --primary: #ff6b00;
-  /* Warm Orange */
-  --primary-foreground: #fafafa;
+  --primary: #6366f1;
+  /* Indigo 500 - Neon-like */
+  --primary-foreground: #ffffff;
 
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
 
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+  --muted: #1e2028;
+  --muted-foreground: #94a3b8;
+  /* Slate 400 */
 
-  --accent: #ff6b00;
-  --accent-foreground: #fafafa;
+  --accent: #6366f1;
+  --accent-foreground: #ffffff;
 
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
 
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #ff6b00;
+  --border: #2d313f;
+  /* Subtle border */
+  --input: #1e2028;
+  --ring: #6366f1;
 
   --radius: 1rem;
 }
@@ -70,13 +75,21 @@
   }
 
   .glass-panel {
-    background-color: rgba(18, 18, 18, 0.85);
+    background-color: rgba(30, 32, 40, 0.75);
     backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  }
+
+  .glow-text-sm {
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
   }
 
   /* Scrollbar */

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useDebouncedCallback } from 'use-debounce'
 import { Menu, User, LogOut, Settings, Search, Bell, Sun, Moon, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { signOut } from 'next-auth/react'
+import { useTheme } from "next-themes"
 
 interface HeaderProps {
     user: {
@@ -17,9 +19,34 @@ interface HeaderProps {
 
 export function Header({ user, onMenuClick }: HeaderProps) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
+    const { replace } = useRouter()
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-    const [isDark, setIsDark] = useState(true) // Default to dark for design preference
+    const { theme, setTheme } = useTheme()
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    const handleSearch = useDebouncedCallback((term: string) => {
+        const params = new URLSearchParams(searchParams)
+        if (term) {
+            params.set('search', term)
+        } else {
+            params.delete('search')
+        }
+        replace(`${pathname}?${params.toString()}`)
+    }, 300)
+
+    const handleFilter = (filter: string) => {
+        const params = new URLSearchParams(searchParams)
+        if (filter === 'All') {
+            params.delete('filter')
+        } else {
+            params.set('filter', filter)
+        }
+        replace(`${pathname}?${params.toString()}`)
+    }
+
+    const currentFilter = searchParams.get('filter') || 'All'
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -72,17 +99,22 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                             <input
                                 type="text"
                                 placeholder="Search tasks, projects..."
+                                defaultValue={searchParams.get('search')?.toString()}
+                                onChange={(e) => handleSearch(e.target.value)}
                                 className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-white/10 transition-all placeholder:text-muted-foreground/70"
                             />
                         </div>
 
                         <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
-                            {['All', 'My Tasks', 'High'].map((filter, i) => (
+                            {['All', 'My Tasks', 'High'].map((filter) => (
                                 <button
                                     key={filter}
+                                    onClick={() => handleFilter(filter)}
                                     className={cn(
                                         "px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
-                                        i === 0 ? "bg-primary text-white shadow-md shadow-primary/20" : "text-muted-foreground hover:text-white hover:bg-white/5"
+                                        currentFilter === filter
+                                            ? "bg-primary text-white shadow-md shadow-primary/20"
+                                            : "text-muted-foreground hover:text-white hover:bg-white/5"
                                     )}
                                 >
                                     {filter}
@@ -94,10 +126,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     {/* Desktop Actions */}
                     <div className="flex items-center justify-end gap-3">
                         <button
-                            onClick={() => setIsDark(!isDark)}
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                             className="p-2.5 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-yellow-400 transition-colors"
                         >
-                            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                            {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                         </button>
 
                         <button className="relative p-2.5 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-primary transition-colors">

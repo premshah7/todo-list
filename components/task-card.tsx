@@ -33,13 +33,15 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
     return (
         <div
             onClick={onClick}
-            className="group relative bg-[#1c1c1c] border border-white/5 rounded-2xl p-4 shadow-sm hover:shadow-xl hover:shadow-black/20 hover:border-primary/50 hover:bg-[#222224] transition-all duration-300 cursor-pointer active:scale-[0.98]"
+            className="group relative bg-[#16181f] border border-transparent rounded-xl p-4 shadow-sm hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:border-white/10 hover:bg-[#1a1d26] transition-all duration-300 cursor-pointer active:scale-[0.98]"
         >
             {/* Header: Priority & More Menu */}
-            <div className="flex items-center justify-between mb-3">
-                <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border tracking-wide uppercase", priorityStyle.bg, priorityStyle.color, priorityStyle.border)}>
-                    {task.priority}
-                </span>
+            <div className="flex items-center justify-between mb-2">
+                <div className={cn("h-1.5 w-8 rounded-full",
+                    task.priority === 'High' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' :
+                        task.priority === 'Medium' ? 'bg-amber-500' : 'bg-slate-600'
+                )} />
+
                 <button className="text-muted-foreground hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1">
                     <MoreHorizontal className="w-4 h-4" />
                 </button>

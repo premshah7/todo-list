@@ -30,12 +30,12 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 )}
             >
                 {/* Header */}
-                <div className="px-8 pt-4">
+                <div className="px-6 pt-6">
                     <Header user={user} onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
                 </div>
 
                 {/* Page content */}
-                <main className="flex-1 px-8 py-6 overflow-y-auto">
+                <main className="flex-1 px-6 py-4 overflow-y-auto">
                     {children}
                 </main>
             </div>

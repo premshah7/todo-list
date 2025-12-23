@@ -47,13 +47,19 @@ export function KanbanColumn({ list, projectId, onTaskClick }: KanbanColumnProps
 
     return (
         <div className="flex flex-col min-w-[320px] max-w-[320px] h-full">
-            <div className="flex items-center justify-between p-1 mb-3">
+            <div className="flex items-center justify-between p-1 mb-4">
                 <div className="flex items-center gap-3">
-                    <span className={cn("px-2.5 py-0.5 text-xs font-semibold rounded-full border", headerStyle)}>
-                        {list.listName}
-                        <span className="ml-2 opacity-70">
-                            {list.tasks.length}
-                        </span>
+                    <div className="relative pb-2">
+                        <h3 className="text-sm font-bold text-white tracking-wide uppercase">{list.listName}</h3>
+                        <div className={cn("absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r",
+                            list.listName === 'Pending' ? 'from-yellow-400 to-transparent' :
+                                list.listName === 'In Progress' ? 'from-primary to-transparent' :
+                                    list.listName === 'Completed' ? 'from-green-400 to-transparent' :
+                                        'from-slate-400 to-transparent'
+                        )} />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full">
+                        {list.tasks.length}
                     </span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -61,7 +67,7 @@ export function KanbanColumn({ list, projectId, onTaskClick }: KanbanColumnProps
                         <MoreHorizontal className="w-4 h-4" />
                     </button>
                     <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
-                        <button className="p-1.5 text-muted-foreground hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                        <button className="p-1.5 text-primary hover:text-white hover:bg-primary/10 rounded-lg transition-colors">
                             <Plus className="w-4 h-4" />
                         </button>
                     </Link>
@@ -84,9 +90,9 @@ export function KanbanColumn({ list, projectId, onTaskClick }: KanbanColumnProps
                 </SortableContext>
 
                 <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
-                    <button className="w-full py-2.5 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground/50 border border-dashed border-white/5 rounded-xl hover:bg-white/5 hover:text-muted-foreground hover:border-white/10 transition-all group">
-                        <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                        Add Task
+                    <button className="w-full py-3 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground/40 hover:text-primary transition-all group">
+                        <Plus className="w-3.5 h-3.5 group-hover:drop-shadow-[0_0_5px_rgba(99,102,241,0.5)] transition-all" />
+                        <span className="group-hover:text-glow">Add New Task</span>
                     </button>
                 </Link>
 

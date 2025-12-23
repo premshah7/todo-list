@@ -60,7 +60,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'fixed top-4 left-4 z-50 h-[calc(100vh-2rem)] glass-panel rounded-2xl transition-all duration-500 ease-out border-r-0',
+                    'fixed top-0 left-0 z-50 h-screen bg-[#0f1117] border-r border-white/5 transition-all duration-300 ease-out',
                     // Floating logic:
                     isExpanded ? 'w-72 translate-x-0' : 'w-20 translate-x-0',
                     'lg:translate-x-0'
@@ -71,12 +71,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <div className="flex flex-col h-full py-6">
                     {/* Logo area */}
                     <div className={cn("flex items-center px-6 mb-8", !isExpanded && "justify-center px-2")}>
-                        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20">
+                        <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-violet-600 shadow-[0_0_15px_rgba(99,102,241,0.5)]">
                             <span className="text-white font-bold text-lg">AI</span>
                         </div>
                         {isExpanded && (
                             <div className="ml-3 animate-in fade-in slide-in-from-left-4 duration-500">
-                                <h1 className="text-lg font-bold text-white tracking-tight">Focus<span className="text-primary">Flow</span></h1>
+                                <h1 className="text-lg font-bold text-white tracking-tight text-glow">Focus<span className="text-primary">Flow</span></h1>
                             </div>
                         )}
                     </div>
@@ -90,11 +90,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                                     key={item.name}
                                     href={item.href}
                                     className={cn(
-                                        'flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-200 group relative',
+                                        'flex items-center gap-3 px-4 py-3 border-l-2 transition-all duration-200 group relative',
                                         isActive
-                                            ? 'bg-white/10 text-white font-medium'
-                                            : 'text-muted-foreground hover:bg-white/5 hover:text-white',
-                                        !isExpanded && 'justify-center px-0 aspect-square rounded-xl'
+                                            ? 'border-primary bg-primary/5 text-primary font-medium text-glow'
+                                            : 'border-transparent text-muted-foreground hover:bg-white/5 hover:text-white',
+                                        !isExpanded && 'justify-center px-0 border-l-0 rounded-xl'
                                     )}
                                     title={!isExpanded ? item.name : undefined}
                                 >
