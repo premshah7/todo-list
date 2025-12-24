@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { SessionProvider } from '@/components/session-provider'
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from 'sonner'
 
 export default function RootLayout({
   children,
@@ -38,6 +39,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </SessionProvider>
       </body>

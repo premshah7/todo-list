@@ -12,6 +12,7 @@ const tasksSchema = z.object({
     status: z.string().min(1),
     assignedToId: z.string().optional(),
     dueDate: z.string().optional(),
+    estimation: z.string().optional(),
 })
 
 export async function createTask(listId: string, formData: FormData) {
@@ -27,7 +28,17 @@ export async function createTask(listId: string, formData: FormData) {
             priority: formData.get('priority') as 'Low' | 'Medium' | 'High',
             status: formData.get('status') as string,
             assignedToId: formData.get('assignedToId') as string || undefined,
-            dueDate: formData.get('dueDate') as string,
+            dueDate: (() => {
+                const date = formData.get('dueDate') as string
+                const time = formData.get('dueTime') as string
+                if (!date) return undefined
+                return time ? `${date}T${time}` : date
+            })(),
+            estimation: (() => {
+                const val = formData.get('estimationValue') as string
+                const unit = formData.get('estimationUnit') as string
+                return val ? `${val} ${unit}` : undefined
+            })(),
         }
 
         const validated = tasksSchema.parse(data)
@@ -46,6 +57,7 @@ export async function createTask(listId: string, formData: FormData) {
                 Status: validated.status,
                 AssignedTo: validated.assignedToId ? Number(validated.assignedToId) : Number(session.user.id),
                 DueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+                Estimation: validated.estimation,
                 ListID: Number(listId),
                 Position: (maxPosition._max.Position ?? -1) + 1,
             },
@@ -94,7 +106,17 @@ export async function updateTask(taskId: string, formData: FormData) {
             priority: formData.get('priority') as 'Low' | 'Medium' | 'High',
             status: formData.get('status') as 'Pending' | 'In Progress' | 'Completed',
             assignedToId: formData.get('assignedToId') as string || null,
-            dueDate: formData.get('dueDate') as string,
+            dueDate: (() => {
+                const date = formData.get('dueDate') as string
+                const time = formData.get('dueTime') as string
+                if (!date) return undefined
+                return time ? `${date}T${time}` : date
+            })(),
+            estimation: (() => {
+                const val = formData.get('estimationValue') as string
+                const unit = formData.get('estimationUnit') as string
+                return val ? `${val} ${unit}` : undefined
+            })(),
         }
 
         const validated = tasksSchema.parse(data)
@@ -108,6 +130,7 @@ export async function updateTask(taskId: string, formData: FormData) {
                 Status: validated.status,
                 AssignedTo: validated.assignedToId ? Number(validated.assignedToId) : null,
                 DueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+                Estimation: validated.estimation,
             },
         })
 
@@ -235,7 +258,16 @@ export async function getMyTasks() {
 
     const tasks = await prisma.tasks.findMany({
         where: {
-            AssignedTo: Number(session.user.id),
+            OR: [
+                { AssignedTo: Number(session.user.id) },
+                {
+                    TaskLists: {
+                        Projects: {
+                            CreatedBy: Number(session.user.id)
+                        }
+                    }
+                }
+            ]
         },
         include: {
             TaskLists: {
@@ -335,5 +367,87 @@ export async function addComment(taskId: string, commentText: string) {
         return { success: true }
     } catch (error) {
         return { error: 'Failed to add comment' }
+    }
+}
+
+export async function setTaskStatus(taskId: string, status: string) {
+    const session = await auth()
+    if (!session?.user) {
+        return { error: 'Unauthorized' }
+    }
+
+    try {
+        const existingTask = await prisma.tasks.findUnique({
+            where: { TaskID: Number(taskId) },
+            include: {
+                TaskLists: true
+            }
+        })
+
+        if (!existingTask) {
+            return { error: 'Task not found' }
+        }
+
+        // Find the target list in the same project based on the new status
+        // Assuming list names match status names ('Pending', 'In Progress', 'Completed')
+        const targetList = await prisma.taskLists.findFirst({
+            where: {
+                ProjectID: existingTask.TaskLists.ProjectID,
+                ListName: status
+            }
+        })
+
+        console.log('DEBUG: setTaskStatus', {
+            taskId,
+            newStatus: status,
+            projectId: existingTask.TaskLists.ProjectID,
+            foundTargetList: !!targetList,
+            targetListId: targetList?.ListID,
+            targetListName: targetList?.ListName
+        })
+
+        const updateData: any = { Status: status }
+
+        // If a matching list exists, move the task to that list
+        if (targetList) {
+            updateData.ListID = targetList.ListID
+        }
+
+        const task = await prisma.tasks.update({
+            where: { TaskID: Number(taskId) },
+            data: updateData
+        })
+
+        // Create history
+        await prisma.taskHistory.create({
+            data: {
+                TaskID: task.TaskID,
+                ChangedBy: Number(session.user.id),
+                ChangeType: 'status_changed',
+                OldValue: existingTask.Status,
+                NewValue: status,
+            },
+        })
+
+        // Also track movement if list changed
+        if (targetList && targetList.ListID !== existingTask.ListID) {
+            await prisma.taskHistory.create({
+                data: {
+                    TaskID: task.TaskID,
+                    ChangedBy: Number(session.user.id),
+                    ChangeType: 'moved',
+                    OldValue: existingTask.TaskLists.ListName,
+                    NewValue: targetList.ListName,
+                },
+            })
+        }
+
+        revalidatePath('/projects')
+        revalidatePath('/my-tasks')
+        revalidatePath(`/tasks/${taskId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Set status error:', error)
+        return { error: 'Failed to update status' }
     }
 }

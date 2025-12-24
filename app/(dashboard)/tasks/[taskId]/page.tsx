@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, User, Clock, MessageCircle } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { CommentForm } from '@/components/comment-form'
+import { CompleteTaskButton } from '@/components/tasks/complete-task-button'
 
 export const revalidate = 60
 
@@ -77,13 +78,14 @@ export default async function TaskDetailPage({
     return (
         <div className="p-8">
             <div className="max-w-5xl mx-auto">
-                <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center justify-between mb-6">
                     <Link href={`/projects/${task.taskList.project.id}/board`}>
                         <Button variant="outline" size="sm">
                             <ArrowLeft className="h-4 w-4 mr-2" />
                             Back to Board
                         </Button>
                     </Link>
+                    <CompleteTaskButton taskId={task.id.toString()} currentStatus={task.status} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

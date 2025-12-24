@@ -187,16 +187,60 @@ export function TaskForm({ projects = [], initialProjectId, cancelHref = '/my-ta
 
                     <div className="space-y-2">
                         <label htmlFor="dueDate" className="text-sm font-medium text-gray-200">
-                            Due Date (Optional)
+                            Due Date & Time (Optional)
                         </label>
-                        <div className="relative">
-                            <Input
-                                id="dueDate"
-                                name="dueDate"
-                                type="date"
-                                className="bg-white/5 border-white/5 text-white placeholder:text-gray-500 focus-visible:ring-primary/50 pl-10 block"
-                            />
-                            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Input
+                                    id="dueDate"
+                                    name="dueDate"
+                                    type="date"
+                                    defaultValue={new Date().toISOString().split('T')[0]}
+                                    className="bg-white/5 border-white/5 text-white placeholder:text-gray-500 focus-visible:ring-primary/50 pl-10 block"
+                                />
+                                <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                            </div>
+                            <div className="relative w-32">
+                                <Input
+                                    id="dueTime"
+                                    name="dueTime"
+                                    type="time"
+                                    defaultValue={new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                    className="bg-white/5 border-white/5 text-white placeholder:text-gray-500 focus-visible:ring-primary/50 block"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-200">
+                            Estimation (Optional)
+                        </label>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Input
+                                    id="estimationValue"
+                                    name="estimationValue"
+                                    type="number"
+                                    min="0"
+                                    placeholder="Value (e.g. 2)"
+                                    className="bg-white/5 border-white/5 text-white placeholder:text-gray-500 focus-visible:ring-primary/50 block"
+                                />
+                            </div>
+                            <div className="relative w-32">
+                                <select
+                                    id="estimationUnit"
+                                    name="estimationUnit"
+                                    defaultValue="Hours"
+                                    className="flex h-11 w-full rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 text-white transition-all duration-200"
+                                >
+                                    <option value="Minutes" className="bg-[#121212]">Minutes</option>
+                                    <option value="Hours" className="bg-[#121212]">Hours</option>
+                                    <option value="Days" className="bg-[#121212]">Days</option>
+                                    <option value="Weeks" className="bg-[#121212]">Weeks</option>
+                                    <option value="Months" className="bg-[#121212]">Months</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 

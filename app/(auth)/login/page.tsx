@@ -97,6 +97,7 @@ export default function LoginPage() {
                                 minLength={6}
                             />
                         </div>
+
                         <div className="space-y-2">
                             <label htmlFor="role" className="text-sm font-medium">
                                 Role

@@ -11,6 +11,7 @@ model Projects {
   ProjectName String
   Description String?
   CreatedBy   Int
+  Status      String      @default("Active")
   CreatedAt   DateTime    @default(now())
   Users       Users       @relation(fields: [CreatedBy], references: [UserID], onDelete: Cascade)
   TaskLists   TaskLists[]
@@ -61,6 +62,7 @@ model Tasks {
   Priority     String
   Status       String
   DueDate      DateTime?
+  Estimation   String?
   CreatedAt    DateTime       @default(now())
   Position     Int            @default(0)
   TaskComments TaskComments[]
@@ -78,14 +80,16 @@ model UserRoles {
 }
 
 model Users {
-  UserID       Int            @id @default(autoincrement())
-  UserName     String         @unique
-  Email        String         @unique
-  PasswordHash String
-  CreatedAt    DateTime       @default(now())
-  Projects     Projects[]
-  TaskComments TaskComments[]
-  TaskHistory  TaskHistory[]
-  Tasks        Tasks[]
-  UserRoles    UserRoles[]
+  UserID           Int            @id @default(autoincrement())
+  UserName         String         @unique
+  Email            String         @unique
+  PasswordHash     String
+  ResetToken       String?
+  ResetTokenExpiry DateTime?
+  CreatedAt        DateTime       @default(now())
+  Projects         Projects[]
+  TaskComments     TaskComments[]
+  TaskHistory      TaskHistory[]
+  Tasks            Tasks[]
+  UserRoles        UserRoles[]
 }

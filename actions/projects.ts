@@ -144,6 +144,26 @@ export async function getProjects() {
     return projects
 }
 
+export async function completeProject(projectId: string) {
+    const session = await auth()
+    if (!session?.user) {
+        return { error: 'Unauthorized' }
+    }
+
+    try {
+        const project = await prisma.projects.update({
+            where: { ProjectID: Number(projectId) },
+            data: { Status: 'Completed' }
+        })
+
+        revalidatePath('/projects')
+        revalidatePath(`/projects/${projectId}`)
+        return { success: true }
+    } catch (error) {
+        return { error: 'Failed to complete project' }
+    }
+}
+
 export async function getProject(projectId: string) {
     const session = await auth()
     if (!session?.user) {

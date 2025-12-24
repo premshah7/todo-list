@@ -1,4 +1,5 @@
 import { getProject } from '@/actions/projects'
+import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { KanbanBoard } from '@/components/kanban-board'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ import { getCurrentUser } from '@/lib/auth'
 export const revalidate = 60
 
 import { RightPanel } from '@/components/layout/right-panel'
+import { CompleteProjectButton } from '@/components/projects/complete-project-button'
 
 // Simple Sparkline Component
 function Sparkline({ data, color }: { data: number[], color: string }) {
@@ -45,6 +47,27 @@ export default async function ProjectBoardPage({
     if (!project) {
         notFound()
     }
+
+    // Fetch project activities
+    const activities = await prisma.taskHistory.findMany({
+        where: {
+            Tasks: {
+                TaskLists: {
+                    ProjectID: Number(projectId)
+                }
+            }
+        },
+        take: 10,
+        orderBy: { ChangeTime: 'desc' },
+        include: {
+            Tasks: {
+                select: { Title: true }
+            },
+            Users: {
+                select: { UserName: true }
+            }
+        }
+    })
 
     const taskLists = project.TaskLists.map(list => {
         let tasks = list.Tasks.map(task => ({
@@ -151,12 +174,15 @@ export default async function ProjectBoardPage({
                                 </div>
                                 <h1 className="text-4xl font-bold text-white tracking-tight text-glow">{project.ProjectName}</h1>
                             </div>
-                            <Link href={`/projects/${project.ProjectID}/tasks/new`}>
-                                <Button className="rounded-xl h-11 px-8 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all bg-primary text-white border-0 font-semibold tracking-wide">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    New Task
-                                </Button>
-                            </Link>
+                            <div className="flex gap-3">
+                                <CompleteProjectButton projectId={project.ProjectID.toString()} isCompleted={project.Status === 'Completed'} />
+                                <Link href={`/projects/${project.ProjectID}/tasks/new`}>
+                                    <Button className="rounded-xl h-11 px-8 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all bg-primary text-white border-0 font-semibold tracking-wide">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        New Task
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
 
                         {/* KPI Cards */}
@@ -196,7 +222,13 @@ export default async function ProjectBoardPage({
             </div>
 
             {/* Right Panel */}
-            <RightPanel />
+            <RightPanel
+                activities={activities}
+                taskStats={{
+                    total: totalTasks,
+                    completed: completedTasks
+                }}
+            />
         </div>
     )
 }

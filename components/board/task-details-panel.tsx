@@ -59,7 +59,7 @@ export function TaskDetailsPanel({ task, isOpen, onClose }: TaskDetailsPanelProp
                             </span>
                             <span className="flex items-center gap-1.5">
                                 <Calendar className="h-3.5 w-3.5" />
-                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                                {task.dueDate ? new Date(task.dueDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'No due date'}
                             </span>
                         </div>
                     </div>
@@ -89,7 +89,7 @@ export function TaskDetailsPanel({ task, isOpen, onClose }: TaskDetailsPanelProp
                             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estimation</label>
                             <div className="flex items-center gap-2 p-3 rounded-xl bg-white/5 border border-white/5">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-white">2h 30m</span>
+                                <span className="text-sm text-white">{task.estimation || 'Not estimated'}</span>
                             </div>
                         </div>
                     </div>
