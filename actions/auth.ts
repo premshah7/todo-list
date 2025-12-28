@@ -44,29 +44,13 @@ export async function registerUser(formData: FormData) {
 
         const hashedPassword = await hashPassword(password)
 
-        // transactions to create user and role
-        await prisma.$transaction(async (tx) => {
-            const newUser = await tx.users.create({
-                data: {
-                    UserName: username,
-                    Email: email,
-                    PasswordHash: hashedPassword,
-                }
-            })
-
-            // Assign role
-            const roleName = role || 'User'
-            const roleRecord = await tx.roles.findUnique({
-                where: { RoleName: roleName }
-            })
-
-            if (roleRecord) {
-                await tx.userRoles.create({
-                    data: {
-                        UserID: newUser.UserID,
-                        RoleID: roleRecord.RoleID
-                    }
-                })
+        // Create user with new Role column
+        await prisma.users.create({
+            data: {
+                UserName: username,
+                Email: email,
+                PasswordHash: hashedPassword,
+                Role: (role || 'USER').toUpperCase() // Ensure uppercase for enum-like string
             }
         })
 

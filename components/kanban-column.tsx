@@ -8,22 +8,22 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface Task {
-    id: string
-    title: string
-    description?: string | null
-    priority: string
-    status: string
-    dueDate?: Date | null
-    assignedTo?: {
-        username: string
-        name?: string | null
+    TaskID: number
+    Title: string
+    Description?: string | null
+    Priority: string
+    Status: string
+    DueDate?: Date | null
+    Users?: {
+        UserID: number
+        UserName: string
     } | null
 }
 
 interface TaskList {
-    id: string
-    listName: string
-    tasks: Task[]
+    ListID: number
+    ListName: string
+    Tasks: Task[]
 }
 
 interface KanbanColumnProps {
@@ -34,40 +34,40 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({ list, projectId, onTaskClick }: KanbanColumnProps) {
     const { setNodeRef } = useDroppable({
-        id: `list-${list.id}`,
+        id: `list-${list.ListID}`,
     })
 
     const headerColors = {
-        Pending: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
-        'In Progress': 'text-primary bg-primary/10 border-primary/20',
-        Completed: 'text-green-400 bg-green-400/10 border-green-400/20',
+        Pending: 'text-amber-700 bg-amber-50 border-amber-200',
+        'In Progress': 'text-indigo-700 bg-indigo-50 border-indigo-200',
+        Completed: 'text-emerald-700 bg-emerald-50 border-emerald-200',
     }
 
-    const headerStyle = headerColors[list.listName as keyof typeof headerColors] || 'text-muted-foreground bg-white/5 border-white/5'
+    const headerStyle = headerColors[list.ListName as keyof typeof headerColors] || 'text-slate-700 bg-slate-50 border-slate-200'
 
     return (
         <div className="flex flex-col min-w-[320px] max-w-[320px] h-full">
             <div className="flex items-center justify-between p-1 mb-4">
                 <div className="flex items-center gap-3">
                     <div className="relative pb-2">
-                        <h3 className="text-sm font-bold text-white tracking-wide uppercase">{list.listName}</h3>
-                        <div className={cn("absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r",
-                            list.listName === 'Pending' ? 'from-yellow-400 to-transparent' :
-                                list.listName === 'In Progress' ? 'from-primary to-transparent' :
-                                    list.listName === 'Completed' ? 'from-green-400 to-transparent' :
+                        <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">{list.ListName}</h3>
+                        <div className={cn("absolute bottom-0 left-0 h-[3px] w-full rounded-full bg-gradient-to-r",
+                            list.ListName === 'Pending' ? 'from-amber-400 to-transparent' :
+                                list.ListName === 'In Progress' ? 'from-indigo-500 to-transparent' :
+                                    list.ListName === 'Completed' ? 'from-emerald-500 to-transparent' :
                                         'from-slate-400 to-transparent'
                         )} />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full">
-                        {list.tasks.length}
+                    <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
+                        {list.Tasks.length}
                     </span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <button className="p-1.5 text-muted-foreground hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                    <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
                         <MoreHorizontal className="w-4 h-4" />
                     </button>
-                    <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
-                        <button className="p-1.5 text-primary hover:text-white hover:bg-primary/10 rounded-lg transition-colors">
+                    <Link href={`/projects/${projectId}/tasks/new?status=${list.ListName}`}>
+                        <button className="p-1.5 text-primary hover:text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors">
                             <Plus className="w-4 h-4" />
                         </button>
                     </Link>
@@ -79,24 +79,24 @@ export function KanbanColumn({ list, projectId, onTaskClick }: KanbanColumnProps
                 className="flex-1 p-2 bg-transparent rounded-2xl min-h-[150px] space-y-3"
             >
                 <SortableContext
-                    items={list.tasks.map(task => task.id)}
+                    items={list.Tasks.map(task => task.TaskID.toString())}
                     strategy={verticalListSortingStrategy}
                 >
                     <div className="space-y-3">
-                        {list.tasks.map((task) => (
-                            <SortableTask key={task.id} task={task} onClick={onTaskClick} />
+                        {list.Tasks.map((task) => (
+                            <SortableTask key={task.TaskID} task={task} onClick={onTaskClick} />
                         ))}
                     </div>
                 </SortableContext>
 
-                <Link href={`/projects/${projectId}/tasks/new?status=${list.listName}`}>
-                    <button className="w-full py-3 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground/40 hover:text-primary transition-all group">
-                        <Plus className="w-3.5 h-3.5 group-hover:drop-shadow-[0_0_5px_rgba(99,102,241,0.5)] transition-all" />
-                        <span className="group-hover:text-glow">Add New Task</span>
+                <Link href={`/projects/${projectId}/tasks/new?status=${list.ListName}`}>
+                    <button className="w-full py-3 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground/60 hover:text-primary transition-all group border border-dashed border-transparent hover:border-primary/20 rounded-xl">
+                        <Plus className="w-3.5 h-3.5 transition-transform" />
+                        <span>Add New Task</span>
                     </button>
                 </Link>
 
-                {list.tasks.length === 0 && (
+                {list.Tasks.length === 0 && (
                     <div className="hidden flex items-center justify-center py-8">
                         <div className="flex flex-col items-center justify-center text-muted-foreground/30 text-xs">
                             <p>No tasks yet</p>

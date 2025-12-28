@@ -5,15 +5,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { TaskCard } from './task-card'
 
 interface Task {
-    id: string
-    title: string
-    description?: string | null
-    priority: string
-    status: string
-    dueDate?: Date | null
-    assignedTo?: {
-        username: string
-        name?: string | null
+    TaskID: number
+    Title: string
+    Description?: string | null
+    Priority: string
+    Status: string
+    DueDate?: Date | null
+    Users?: {
+        UserID: number
+        UserName: string
     } | null
 }
 
@@ -30,7 +30,7 @@ export function SortableTask({ task, onClick }: SortableTaskProps) {
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: task.id })
+    } = useSortable({ id: task.TaskID.toString() })
 
     const style = {
         transform: CSS.Transform.toString(transform),

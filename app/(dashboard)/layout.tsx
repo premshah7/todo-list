@@ -1,17 +1,16 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { getCurrentUser } from "@/lib/auth"
+import { DashboardShell } from "@/components/layout/DashboardShell"
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
     const user = await getCurrentUser()
 
-    if (!user) {
-        redirect('/login')
-    }
-
     return (
-        <DashboardLayout user={user}>
+        <DashboardShell user={user || {}}>
             {children}
-        </DashboardLayout>
+        </DashboardShell>
     )
 }

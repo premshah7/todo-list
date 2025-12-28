@@ -9,22 +9,23 @@ import { moveTask } from '@/actions/tasks'
 import { TaskDetailsPanel } from './board/task-details-panel'
 
 interface Task {
-    id: string
-    title: string
-    description?: string | null
-    priority: string
-    status: string
-    dueDate?: Date | null
-    assignedTo?: {
-        username: string
-        name?: string | null
+    TaskID: number
+    Title: string
+    Description?: string | null
+    Priority: string
+    Status: string
+    DueDate?: Date | null
+    Users?: {
+        UserID: number
+        UserName: string
     } | null
+    // Add other fields as necessary from your Prisma type
 }
 
 interface TaskList {
-    id: string
-    listName: string
-    tasks: Task[]
+    ListID: number
+    ListName: string
+    Tasks: Task[]
 }
 
 interface KanbanBoardProps {
@@ -42,9 +43,12 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
         })
     )
 
-    const activeTask = activeId
-        ? taskLists.flatMap(list => list.tasks).find(task => task.id === activeId)
-        : null
+    // Helper to find task by ID (handling string/number mismatch for dnd-kit)
+    const findTask = (id: string) => {
+        return taskLists.flatMap(list => list.Tasks).find(task => task.TaskID.toString() === id)
+    }
+
+    const activeTask = activeId ? findTask(activeId) : null
 
     async function handleDragStart(event: DragStartEvent) {
         setActiveId(event.active.id as string)
@@ -58,12 +62,18 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
             return
         }
 
-        const activeId = active.id as string
-        const overId = over.id as string
+        const activeIdStr = active.id as string
+        const overIdStr = over.id as string
 
         // Find the task being dragged
+        const activeTask = findTask(activeIdStr)
+        if (!activeTask) {
+            setActiveId(null)
+            return
+        }
+
         const activeList = taskLists.find(list =>
-            list.tasks.some(task => task.id === activeId)
+            list.Tasks.some(task => task.TaskID === activeTask.TaskID)
         )
 
         if (!activeList) {
@@ -72,26 +82,35 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
         }
 
         // Determine which list the task is being dropped into
-        let targetListId: string
+        let targetListId: number
         let targetPosition: number = 0
 
         // Check if dropped on another task
-        const targetTask = taskLists.flatMap(list => list.tasks).find(task => task.id === overId)
+        const targetTask = findTask(overIdStr)
+
         if (targetTask) {
-            const targetList = taskLists.find(list => list.tasks.some(task => task.id === overId))
+            const targetList = taskLists.find(list => list.Tasks.some(task => task.TaskID === targetTask.TaskID))
             if (targetList) {
-                targetListId = targetList.id
-                targetPosition = targetList.tasks.findIndex(task => task.id === overId)
+                targetListId = targetList.ListID
+                targetPosition = targetList.Tasks.findIndex(task => task.TaskID === targetTask.TaskID)
             } else {
                 setActiveId(null)
                 return
             }
         } else {
             // Dropped on a column
-            const targetList = taskLists.find(list => `list-${list.id}` === overId)
-            if (targetList) {
-                targetListId = targetList.id
-                targetPosition = targetList.tasks.length
+            // We expect column IDs to be `list-{ListID}`
+            const listIdMatch = overIdStr.match(/^list-(\d+)$/)
+            if (listIdMatch) {
+                const listId = parseInt(listIdMatch[1])
+                const targetList = taskLists.find(list => list.ListID === listId)
+                if (targetList) {
+                    targetListId = targetList.ListID
+                    targetPosition = targetList.Tasks.length
+                } else {
+                    setActiveId(null)
+                    return
+                }
             } else {
                 setActiveId(null)
                 return
@@ -99,15 +118,16 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
         }
 
         // Move the task
-        await moveTask(activeId, targetListId, targetPosition)
+        // Only move if position or list changed
+        if (activeList.ListID !== targetListId ||
+            activeList.Tasks.findIndex(t => t.TaskID === activeTask.TaskID) !== targetPosition) {
+            await moveTask(activeTask.TaskID.toString(), targetListId.toString(), targetPosition)
+        }
+
         setActiveId(null)
     }
 
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-
-    // ... (rest of sensors and activeTask logic)
-
-    // ... (drag handlers)
 
     return (
         <>
@@ -120,7 +140,7 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
                 <div className="flex gap-6 overflow-x-auto pb-4">
                     {taskLists.map((list) => (
                         <KanbanColumn
-                            key={list.id}
+                            key={list.ListID}
                             list={list}
                             projectId={projectId}
                             onTaskClick={setSelectedTask}
@@ -139,7 +159,18 @@ export function KanbanBoard({ taskLists, projectId }: KanbanBoardProps) {
 
             {/* Task Details Slide-over */}
             <TaskDetailsPanel
-                task={selectedTask}
+                task={selectedTask ? {
+                    id: selectedTask.TaskID.toString(),
+                    title: selectedTask.Title,
+                    priority: selectedTask.Priority,
+                    status: selectedTask.Status,
+                    description: selectedTask.Description,
+                    dueDate: selectedTask.DueDate,
+                    assignedTo: selectedTask.Users ? {
+                        username: selectedTask.Users.UserName,
+                        name: selectedTask.Users.UserName
+                    } : null
+                } : null}
                 isOpen={!!selectedTask}
                 onClose={() => setSelectedTask(null)}
             />

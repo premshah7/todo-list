@@ -7,6 +7,7 @@ import { Menu, User, LogOut, Settings, Search, Bell, Sun, Moon, Filter } from 'l
 import { cn } from '@/lib/utils'
 import { signOut } from 'next-auth/react'
 import { useTheme } from "next-themes"
+import { ThemeToggle } from '@/components/theme-toggle'
 
 interface HeaderProps {
     user: {
@@ -24,7 +25,14 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     const { replace } = useRouter()
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    // ... search and filter handlers ...
 
     const handleSearch = useDebouncedCallback((term: string) => {
         const params = new URLSearchParams(searchParams)
@@ -63,7 +71,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
     }, [isDropdownOpen])
 
     async function handleLogout() {
-        await signOut({ callbackUrl: '/login' })
+        await signOut({ redirect: false })
+        window.location.href = '/'
     }
 
     return (
@@ -74,14 +83,14 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden p-2 -ml-2 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-primary transition-colors"
+                        className="p-2 -ml-2 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-primary transition-colors"
                         aria-label="Toggle menu"
                     >
                         <Menu className="w-6 h-6" />
                     </button>
 
                     <div className="flex flex-col">
-                        <h1 className="text-xl font-bold text-white tracking-tight">Project Kanban Board</h1>
+                        <h1 className="text-xl font-bold text-foreground tracking-tight">Project Kanban Board</h1>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             <span>Website Redesign</span>
@@ -101,11 +110,11 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                 placeholder="Search tasks, projects..."
                                 defaultValue={searchParams.get('search')?.toString()}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary/50 focus:bg-white/10 transition-all placeholder:text-muted-foreground/70"
+                                className="w-full bg-muted/40 border border-border hover:border-border/80 focus:border-primary rounded-xl py-2 pl-10 pr-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/50"
                             />
                         </div>
 
-                        <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-xl border border-border">
                             {['All', 'My Tasks', 'High'].map((filter) => (
                                 <button
                                     key={filter}
@@ -113,8 +122,8 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                     className={cn(
                                         "px-3 py-1.5 text-xs font-medium rounded-lg transition-all",
                                         currentFilter === filter
-                                            ? "bg-primary text-white shadow-md shadow-primary/20"
-                                            : "text-muted-foreground hover:text-white hover:bg-white/5"
+                                            ? "bg-background text-foreground shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
                                     )}
                                 >
                                     {filter}
@@ -125,16 +134,11 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
                     {/* Desktop Actions */}
                     <div className="flex items-center justify-end gap-3">
-                        <button
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2.5 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-yellow-400 transition-colors"
-                        >
-                            {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                        </button>
+                        <ThemeToggle />
 
-                        <button className="relative p-2.5 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-primary transition-colors">
+                        <button className="relative p-2.5 rounded-xl text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
                             <Bell className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border border-[#0f1117]" />
+                            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-background" />
                         </button>
 
                         <div className="h-6 w-px bg-white/10 mx-1" />
@@ -143,20 +147,20 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-xl hover:bg-white/5 transition-all group"
+                                className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-xl hover:bg-muted transition-all group"
                             >
                                 <div className="hidden sm:block text-right mr-1">
-                                    <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors">
+                                    <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
                                         {user.username}
                                     </p>
                                     <div className="flex justify-end">
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium tracking-wide bordered border-primary/20">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium tracking-wide border border-primary/20">
                                             {user.roles[0] || 'USER'}
                                         </span>
                                     </div>
                                 </div>
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/25 border border-white/10 group-hover:scale-105 transition-transform">
-                                    <span className="text-white font-bold text-sm">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white border border-white/10 group-hover:scale-105 transition-transform">
+                                    <span className="font-bold text-sm">
                                         {user.username.charAt(0).toUpperCase()}
                                     </span>
                                 </div>
@@ -164,10 +168,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
                             {/* Dropdown menu */}
                             {isDropdownOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-64 glass-panel rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-white/10 bg-[#1c1c1c]">
+                                <div className="absolute right-0 top-full mt-2 w-64 rounded-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 shadow-xl border border-border bg-popover z-50">
                                     {/* User info */}
-                                    <div className="px-5 py-4 border-b border-white/5 bg-white/5">
-                                        <p className="text-sm font-medium text-white">
+                                    <div className="px-5 py-4 border-b border-border bg-muted/30">
+                                        <p className="text-sm font-medium text-foreground">
                                             {user.username}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -182,7 +186,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                                 router.push('/profile')
                                                 setIsDropdownOpen(false)
                                             }}
-                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/5 hover:text-white transition-colors"
+                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                                         >
                                             <User className="w-4 h-4" />
                                             Profile
@@ -192,7 +196,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                                 router.push('/profile')
                                                 setIsDropdownOpen(false)
                                             }}
-                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-white/5 hover:text-white transition-colors"
+                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                                         >
                                             <Settings className="w-4 h-4" />
                                             Settings
@@ -200,10 +204,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                                     </div>
 
                                     {/* Logout */}
-                                    <div className="p-2 border-t border-white/5">
+                                    <div className="p-2 border-t border-border">
                                         <button
-                                            onClick={handleLogout}
-                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                                            onClick={() => handleLogout()}
+                                            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 transition-colors"
                                         >
                                             <LogOut className="w-4 h-4" />
                                             Logout
@@ -215,6 +219,6 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                     </div>
                 </div>
             </div>
-        </header>
+        </header >
     )
 }

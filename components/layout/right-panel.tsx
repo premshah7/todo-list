@@ -76,7 +76,7 @@ export function RightPanel({ activities = [], taskStats = { total: 0, completed:
     return (
         <aside
             className={cn(
-                "hidden xl:flex flex-col w-80 fixed right-0 top-0 h-screen bg-[#0f1117] border-l border-white/5 p-6 pt-24 z-40 transition-transform duration-300 ease-in-out",
+                "hidden xl:flex flex-col w-80 fixed right-0 top-0 h-screen bg-background border-l border-border p-6 pt-24 z-40 transition-transform duration-300 ease-in-out shadow-xl",
                 !isOpen && "translate-x-full"
             )}
         >
@@ -84,7 +84,7 @@ export function RightPanel({ activities = [], taskStats = { total: 0, completed:
             <div className="absolute top-6 right-6 z-30">
                 <button
                     onClick={onToggle}
-                    className="p-1 rounded-md text-muted-foreground hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                     title="Close Sidebar"
                 >
                     <ChevronRight className="w-5 h-5" />
@@ -93,19 +93,19 @@ export function RightPanel({ activities = [], taskStats = { total: 0, completed:
 
             {/* Team Activity Section */}
             <div className="mb-8 flex-1 overflow-y-auto no-scrollbar">
-                <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2 sticky top-0 bg-[#0f1117] z-10 py-2">
+                <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2 sticky top-0 bg-background z-10 py-2">
                     <Clock className="w-4 h-4 text-primary" />
                     Team Activity
                 </h3>
 
-                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/5">
+                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-border">
                     {mappedActivities.length === 0 ? (
                         <div className="pl-10 text-xs text-muted-foreground">No recent activity</div>
                     ) : (
                         mappedActivities.map((activity) => (
                             <div key={activity.id} className="relative pl-10">
                                 {/* Timeline Node */}
-                                <div className="absolute left-[9px] top-1 w-3.5 h-3.5 rounded-full bg-[#0f1117] border-2 border-primary/50 z-10" />
+                                <div className="absolute left-[9px] top-1 w-3.5 h-3.5 rounded-full bg-background border-2 border-primary/50 z-10" />
 
                                 <div className="group">
                                     <div className="flex items-center gap-2 mb-1">
@@ -117,7 +117,7 @@ export function RightPanel({ activities = [], taskStats = { total: 0, completed:
                                     </div>
 
                                     <p className="text-xs text-muted-foreground leading-relaxed">
-                                        {activity.action} <span className="text-primary/90 font-medium hover:underline cursor-pointer line-clamp-1">{activity.target}</span>
+                                        {activity.action} <span className="text-primary font-medium hover:underline cursor-pointer line-clamp-1">{activity.target}</span>
                                     </p>
                                 </div>
                             </div>
@@ -128,18 +128,18 @@ export function RightPanel({ activities = [], taskStats = { total: 0, completed:
 
             {/* Project Progress Section */}
             <div className="mt-auto">
-                <h3 className="text-sm font-semibold text-white mb-4">Overall Progress</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-4">Overall Progress</h3>
 
-                <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-transparent border border-white/5">
+                <div className="p-4 rounded-xl bg-muted/40 border border-border">
                     <div className="flex justify-between items-end mb-2">
                         <div>
-                            <p className="text-xs text-muted-foreground">All Tasks</p>
-                            <p className="text-lg font-bold text-white">{progress}%</p>
+                            <p className="text-xs text-muted-foreground mb-1">All Tasks</p>
+                            <p className="text-lg font-bold text-foreground">{progress}%</p>
                         </div>
                     </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-gradient-to-r from-primary to-violet-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
+                            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
                             style={{ width: `${progress}%` }}
                         />
                     </div>

@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/next-auth'
+import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -258,6 +258,9 @@ export async function getMyTasks() {
 
     const tasks = await prisma.tasks.findMany({
         where: {
+            Status: {
+                not: 'In Progress'
+            },
             OR: [
                 { AssignedTo: Number(session.user.id) },
                 {
@@ -340,6 +343,11 @@ export async function getTask(taskId: string) {
                 },
                 orderBy: {
                     ChangeTime: 'desc',
+                },
+            },
+            Subtasks: {
+                orderBy: {
+                    CreatedAt: 'asc',
                 },
             },
         },

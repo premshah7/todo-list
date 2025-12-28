@@ -7,14 +7,29 @@ datasource db {
 }
 
 model Projects {
-  ProjectID   Int         @id @default(autoincrement())
-  ProjectName String
-  Description String?
-  CreatedBy   Int
-  Status      String      @default("Active")
-  CreatedAt   DateTime    @default(now())
-  Users       Users       @relation(fields: [CreatedBy], references: [UserID], onDelete: Cascade)
-  TaskLists   TaskLists[]
+  ProjectID      Int              @id @default(autoincrement())
+  ProjectName    String
+  Description    String?
+  CreatedBy      Int
+  Status         String           @default("Active")
+  CreatedAt      DateTime         @default(now())
+  Users          Users            @relation(fields: [CreatedBy], references: [UserID], onDelete: Cascade)
+  TaskLists      TaskLists[]
+  ProjectMembers ProjectMembers[]
+  todos          Todos[]
+}
+
+model ProjectMembers {
+  MemberID  Int      @id @default(autoincrement())
+  ProjectID Int
+  UserID    Int
+  Role      String   @default("Editor") // 'Viewer', 'Editor', 'Admin'
+  JoinedAt  DateTime @default(now())
+
+  Projects Projects @relation(fields: [ProjectID], references: [ProjectID], onDelete: Cascade)
+  Users    Users    @relation(fields: [UserID], references: [UserID], onDelete: Cascade)
+
+  @@unique([ProjectID, UserID]) // Prevent duplicate membership
 }
 
 model Roles {
@@ -69,6 +84,17 @@ model Tasks {
   TaskHistory  TaskHistory[]
   Users        Users?         @relation(fields: [AssignedTo], references: [UserID])
   TaskLists    TaskLists      @relation(fields: [ListID], references: [ListID], onDelete: Cascade)
+  Subtasks     Subtasks[]
+}
+
+model Subtasks {
+  SubtaskID   Int      @id @default(autoincrement())
+  TaskID      Int
+  Title       String
+  IsCompleted Boolean  @default(false)
+  CreatedAt   DateTime @default(now())
+
+  Tasks Tasks @relation(fields: [TaskID], references: [TaskID], onDelete: Cascade)
 }
 
 model UserRoles {
@@ -80,16 +106,66 @@ model UserRoles {
 }
 
 model Users {
-  UserID           Int            @id @default(autoincrement())
-  UserName         String         @unique
-  Email            String         @unique
+  UserID           Int              @id @default(autoincrement())
+  UserName         String           @unique
+  Email            String           @unique
   PasswordHash     String
   ResetToken       String?
   ResetTokenExpiry DateTime?
-  CreatedAt        DateTime       @default(now())
+  CreatedAt        DateTime         @default(now())
   Projects         Projects[]
   TaskComments     TaskComments[]
   TaskHistory      TaskHistory[]
   Tasks            Tasks[]
   UserRoles        UserRoles[]
+  ProjectMembers   ProjectMembers[]
+  Todos            Todos[]
+
+  // RBAC & Hierarchy
+  Role        String   @default("USER") // ADMIN, MANAGER, USER
+  ManagerID   Int?
+  Manager     Users?   @relation("ManagerToUser", fields: [ManagerID], references: [UserID])
+  TeamMembers Users[]  @relation("ManagerToUser")
+  profile     Profile?
+}
+
+model Todos {
+  TodoID      Int      @id @default(autoincrement())
+  UserID      Int
+  Content     String
+  IsCompleted Boolean  @default(false)
+  ProjectID   Int?
+  Duration    String? // e.g. "2d 4h 30m"
+  CreatedAt   DateTime @default(now())
+
+  User    Users     @relation(fields: [UserID], references: [UserID], onDelete: Cascade)
+  Project Projects? @relation(fields: [ProjectID], references: [ProjectID], onDelete: SetNull)
+}
+
+model Profile {
+  ProfileID Int   @id @default(autoincrement())
+  UserID    Int   @unique
+  User      Users @relation(fields: [UserID], references: [UserID], onDelete: Cascade)
+
+  // Common Fields
+  Bio String?
+
+  // Admin Fields
+  JobTitle   String?
+  Department String?
+  Timezone   String?
+
+  // Manager Fields
+  TeamName    String?
+  Designation String?
+
+  // User Fields
+  Skills    String? // Comma separated tags
+  WorkHours String? // e.g. "9AM - 5PM"
+
+  // Preferences
+  EmailNotifications Boolean @default(true)
+  Theme              String? @default("system")
+
+  UpdatedAt DateTime @updatedAt
 }

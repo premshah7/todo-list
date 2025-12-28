@@ -15,7 +15,7 @@ export default async function UsersPage() {
         redirect('/login')
     }
 
-    const userRole = currentUser.roles[0] // Primary role
+    const userRole = currentUser.role // Primary role
 
     // Build query based on role
     let whereClause: any = {}

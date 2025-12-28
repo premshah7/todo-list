@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/next-auth'
+import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -23,16 +23,25 @@ export async function createProject(formData: FormData) {
         }
 
         const validated = projectSchema.parse(data)
+        const userId = parseInt((session.user as any).id)
+
+        // Verify user exists in database (handles stale sessions)
+        const userExists = await prisma.users.findUnique({
+            where: { UserID: userId }
+        })
+
+        if (!userExists) {
+            return { error: 'User account not found. Please log out and log in again.' }
+        }
 
         const project = await prisma.projects.create({
             data: {
                 ProjectName: validated.projectName,
                 Description: validated.description,
-                CreatedBy: parseInt((session.user as any).id),
+                CreatedBy: userId,
                 TaskLists: {
                     create: [
                         { ListName: 'Pending' },
-                        { ListName: 'In Progress' },
                         { ListName: 'Completed' },
                     ],
                 },
@@ -115,7 +124,16 @@ export async function getProjects() {
 
     const whereClause: any = {}
     if (!isAdminOrManager) {
-        whereClause.CreatedBy = parseInt((session.user as any).id)
+        whereClause.OR = [
+            { CreatedBy: parseInt((session.user as any).id) },
+            {
+                ProjectMembers: {
+                    some: {
+                        UserID: parseInt((session.user as any).id)
+                    }
+                }
+            }
+        ]
     }
 
     const projects = await prisma.projects.findMany({
@@ -181,7 +199,16 @@ export async function getProject(projectId: string) {
     }
 
     if (!isAdminOrManager) {
-        whereClause.CreatedBy = parseInt((session.user as any).id)
+        whereClause.OR = [
+            { CreatedBy: parseInt((session.user as any).id) },
+            {
+                ProjectMembers: {
+                    some: {
+                        UserID: parseInt((session.user as any).id)
+                    }
+                }
+            }
+        ]
     }
 
     const project = await prisma.projects.findFirst({
@@ -197,6 +224,11 @@ export async function getProject(projectId: string) {
             TaskLists: {
                 include: {
                     Tasks: {
+                        where: {
+                            Status: {
+                                not: 'In Progress'
+                            }
+                        },
                         include: {
                             Users: {
                                 select: {
@@ -214,6 +246,17 @@ export async function getProject(projectId: string) {
                     ListID: 'asc',
                 },
             },
+            ProjectMembers: {
+                include: {
+                    Users: {
+                        select: {
+                            UserID: true,
+                            UserName: true,
+                            Email: true,
+                        }
+                    }
+                }
+            }
         },
     })
 

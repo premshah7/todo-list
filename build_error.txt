@@ -1,0 +1,26 @@
+﻿.next/dev/types/validator.ts(170,39): error TS2307: Cannot find module '../../../app/(dashboard)/profile/page.js' or its corresponding type declarations.
+app/(dashboard)/test/page.tsx(1,22): error TS2307: Cannot find module '@/lib/next-auth' or its corresponding type declarations.
+app/(dashboard)/test/page.tsx(18,33): error TS2561: Object literal may only specify known properties, but 'projectName' does not exist in type 'ProjectsSelect<DefaultArgs>'. Did you mean to write 'ProjectName'?
+app/(dashboard)/test/page.tsx(25,24): error TS2353: Object literal may only specify known properties, and 'dueDate' does not exist in type 'TasksOrderByWithRelationInput | TasksOrderByWithRelationInput[]'.
+app/(dashboard)/users/page.tsx(18,34): error TS2551: Property 'roles' does not exist on type '{ id: string; role: string; username: string; } & User'. Did you mean 'role'?
+app/api/profile/route.ts(14,22): error TS2322: Type 'string' is not assignable to type 'number'.
+app/api/profile/route.ts(33,25): error TS2339: Property 'UserRoles' does not exist on type '{ CreatedAt: Date; UserID: number; UserName: string; Email: string; PasswordHash: string; ResetToken: string | null; ResetTokenExpiry: Date | null; Role: string; ManagerID: number | null; }'.
+app/api/profile/route.ts(33,39): error TS7006: Parameter 'ur' implicitly has an 'any' type.
+app/api/profile/route.ts(71,17): error TS2322: Type '{ UserID: string; }' is not assignable to type 'UsersWhereInput | UsersWhereInput[] | undefined'.
+  Types of property 'UserID' are incompatible.
+    Type 'string' is not assignable to type 'number | IntFilter<"Users"> | undefined'.
+app/api/profile/route.ts(83,17): error TS2322: Type '{ UserID: string; }' is not assignable to type 'UsersWhereInput | UsersWhereInput[] | undefined'.
+  Types of property 'UserID' are incompatible.
+    Type 'string' is not assignable to type 'number | IntFilter<"Users"> | undefined'.
+app/api/profile/route.ts(93,22): error TS2322: Type 'string' is not assignable to type 'number'.
+components/layout/DashboardLayout.tsx(23,22): error TS2322: Type '{ isOpen: boolean; onToggle: () => void; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'isOpen' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+components/profile/profile-form.tsx(68,9): error TS2322: Type 'Resolver<{ name: string; email: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; ... 4 more ...; theme?: string | undefined; }, any, { ...; }>' is not assignable to type 'Resolver<{ name: string; email: string; emailNotifications: boolean; theme: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; designation?: string | undefined; skills?: string | undefined; workHours?: string...'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ name: string; email: string; emailNotifications: boolean; theme: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; designation?: string | undefined; skills?: string | undefined; workHours?:...' is not assignable to type 'ResolverOptions<{ name: string; email: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; ... 4 more ...; theme?: string | undefined; }>'.
+      Type 'boolean | undefined' is not assignable to type 'boolean'.
+        Type 'undefined' is not assignable to type 'boolean'.
+components/profile/profile-form.tsx(86,43): error TS2345: Argument of type '(data: { name: string; email: string; emailNotifications: boolean; theme: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; designation?: string | undefined; skills?: string | undefined; workHours?: string |...' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ name: string; email: string; emailNotifications: boolean; theme: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; designation?: string | undefined; skills?: string | undefined; workHours?: string | undefi...'.
+      Type 'FieldValues' is missing the following properties from type '{ name: string; email: string; emailNotifications: boolean; theme: string; bio?: string | undefined; jobTitle?: string | undefined; department?: string | undefined; timezone?: string | undefined; teamName?: string | undefined; designation?: string | undefined; skills?: string | undefined; workHours?: string | undefi...': name, email, emailNotifications, theme
