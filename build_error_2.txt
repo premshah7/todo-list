@@ -1,1 +1,0 @@
-﻿components/layout/DashboardLayout.tsx(23,14): error TS2741: Property 'user' is missing in type '{ isOpen: boolean; onToggle: () => void; }' but required in type 'SidebarProps'.

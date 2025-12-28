@@ -1,1 +1,0 @@
-﻿components/layout/DashboardLayout.tsx(23,22): error TS2559: Type '{ username: string; email: string; roles: string[]; }' has no properties in common with type '{ role?: string | undefined; }'.
