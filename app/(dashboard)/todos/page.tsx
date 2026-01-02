@@ -1,5 +1,5 @@
 import { TodoList } from "@/components/todos/todo-list"
-import { getTodos, getUserProjects } from "@/actions/todos"
+import { getTodos, getUserProjects, getAssignedProjectTasks } from "@/actions/todos"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
 
@@ -9,9 +9,10 @@ export default async function TodosPage() {
     const user = await getCurrentUser()
     if (!user) redirect("/login")
 
-    const [todos, projects] = await Promise.all([
+    const [todos, projects, assignedTasks] = await Promise.all([
         getTodos(),
-        getUserProjects()
+        getUserProjects(),
+        getAssignedProjectTasks()
     ])
 
     return (
@@ -23,7 +24,7 @@ export default async function TodosPage() {
                 </p>
             </div>
 
-            <TodoList initialTodos={todos} projects={projects} />
+            <TodoList initialTodos={todos} projects={projects} assignedTasks={assignedTasks} />
         </div>
     )
 }

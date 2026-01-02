@@ -121,6 +121,11 @@ model Users {
   ProjectMembers   ProjectMembers[]
   Todos            Todos[]
 
+  // Registration & Approval
+  RegistrationStatus String    @default("APPROVED") // PENDING, APPROVED, ACTIVE (Existing users default to APPROVED)
+  ApprovedAt         DateTime?
+  ApprovedBy         Int?
+
   // RBAC & Hierarchy
   Role        String   @default("USER") // ADMIN, MANAGER, USER
   ManagerID   Int?
@@ -168,4 +173,42 @@ model Profile {
   Theme              String? @default("system")
 
   UpdatedAt DateTime @updatedAt
+}
+
+model UserRegistrationQueue {
+  QueueID         String    @id @default(uuid())
+  UserName        String    @unique
+  Email           String    @unique
+  PasswordHash    String
+  FullName        String
+  Department      String?
+  Role            String    @default("USER")
+  Status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  SubmittedAt     DateTime  @default(now())
+  ReviewedAt      DateTime?
+  ReviewedBy      Int?
+  AdminNotes      String?
+  RejectionReason String?
+  ApprovalToken   String?   @unique
+  ExpiresAt       DateTime?
+}
+
+model AdminApprovalLog {
+  LogID     String   @id @default(uuid())
+  AdminID   Int
+  QueueID   String
+  Action    String // APPROVED, REJECTED, VIEWED
+  Timestamp DateTime @default(now())
+  Notes     String?
+  IPAddress String?
+}
+
+model QueueNotifications {
+  NotificationID String    @id @default(uuid())
+  UserEmail      String
+  QueueID        String
+  Status         String // APPROVED, REJECTED, REMINDER
+  Message        String
+  SentAt         DateTime  @default(now())
+  ReadAt         DateTime?
 }

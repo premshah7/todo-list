@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, CheckSquare, Settings, Users, FolderKanban, User } from "lucide-react"
+import { LayoutDashboard, CheckSquare, Settings, Users, FolderKanban, User, ClipboardList, Globe, Shield } from "lucide-react"
 
 interface SidebarProps {
     user: {
@@ -24,6 +24,7 @@ export function Sidebar({ user, isOpen = true }: SidebarProps) {
     const navigation = [
         { name: "Dashboard", href: dashboardLink, icon: LayoutDashboard, roles: ["ADMIN", "MANAGER", "USER"] },
         { name: "Projects", href: "/projects", icon: FolderKanban, roles: ["ADMIN", "MANAGER", "USER"] },
+        { name: "My Tasks", href: "/my-tasks", icon: ClipboardList, roles: ["ADMIN", "MANAGER", "USER"] },
         { name: "Todos", href: "/todos", icon: CheckSquare, roles: ["ADMIN", "MANAGER", "USER"] },
         { name: "Profile", href: "/dashboard/profile", icon: User, roles: ["ADMIN", "MANAGER", "USER"] },
         // Admin Only
@@ -52,13 +53,10 @@ export function Sidebar({ user, isOpen = true }: SidebarProps) {
 
             <div className="py-6 px-3 space-y-1">
                 {filteredNav.map((item) => {
-                    // Check active state more permissively for sub-routes, but prevent overlap
                     const isActive = pathname === item.href || (
                         item.href !== "/dashboard/me" &&
                         pathname.startsWith(item.href + "/") &&
-                        // Special case: Don't highlight Manager Dashboard if we are on Team page
                         !(item.href === "/dashboard/manager" && pathname.startsWith("/dashboard/manager/team")) &&
-                        // Special case: Don't highlight Admin Dashboard if we are on Users page
                         !(item.href === "/dashboard/admin" && pathname.startsWith("/dashboard/admin/users"))
                     )
 

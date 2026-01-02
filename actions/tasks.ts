@@ -63,7 +63,7 @@ export async function createTask(listId: string, formData: FormData) {
             },
         })
 
-        // Create history
+
         await prisma.taskHistory.create({
             data: {
                 TaskID: task.TaskID,
@@ -74,7 +74,7 @@ export async function createTask(listId: string, formData: FormData) {
         })
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
+        revalidatePath('/todos')
         return { success: true, taskId: task.TaskID }
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -134,7 +134,7 @@ export async function updateTask(taskId: string, formData: FormData) {
             },
         })
 
-        // Create history entries for changes
+
         if (existingTask.Status !== task.Status) {
             await prisma.taskHistory.create({
                 data: {
@@ -160,7 +160,7 @@ export async function updateTask(taskId: string, formData: FormData) {
         }
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
+        revalidatePath('/todos')
         revalidatePath(`/tasks/${taskId}`)
         return { success: true }
     } catch (error) {
@@ -184,7 +184,7 @@ export async function deleteTask(taskId: string) {
         })
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
+        revalidatePath('/todos')
         return { success: true }
     } catch (error) {
         return { error: 'Failed to delete task' }
@@ -396,8 +396,8 @@ export async function setTaskStatus(taskId: string, status: string) {
             return { error: 'Task not found' }
         }
 
-        // Find the target list in the same project based on the new status
-        // Assuming list names match status names ('Pending', 'In Progress', 'Completed')
+
+
         const targetList = await prisma.taskLists.findFirst({
             where: {
                 ProjectID: existingTask.TaskLists.ProjectID,
@@ -416,7 +416,7 @@ export async function setTaskStatus(taskId: string, status: string) {
 
         const updateData: any = { Status: status }
 
-        // If a matching list exists, move the task to that list
+
         if (targetList) {
             updateData.ListID = targetList.ListID
         }
@@ -451,7 +451,7 @@ export async function setTaskStatus(taskId: string, status: string) {
         }
 
         revalidatePath('/projects')
-        revalidatePath('/my-tasks')
+        revalidatePath('/todos')
         revalidatePath(`/tasks/${taskId}`)
         return { success: true }
     } catch (error) {

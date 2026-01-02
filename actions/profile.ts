@@ -26,14 +26,14 @@ const profileSchema = z.object({
 })
 
 export async function updateProfile(data: z.infer<typeof profileSchema>) {
-    // 1. Verify User (Any role can update their own profile)
+
     const currentUser = await requireRole(["ADMIN", "MANAGER", "USER"])
     const userId = parseInt(currentUser.id)
 
-    // 2. Validate Data
+
     const validData = profileSchema.parse(data)
 
-    // 3. Update User Core Data
+
     await prisma.users.update({
         where: { UserID: userId },
         data: {
@@ -42,7 +42,7 @@ export async function updateProfile(data: z.infer<typeof profileSchema>) {
         }
     })
 
-    // 4. Update or Create Profile
+
     await prisma.profile.upsert({
         where: { UserID: userId },
         update: {

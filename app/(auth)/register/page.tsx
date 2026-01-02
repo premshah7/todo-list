@@ -26,30 +26,40 @@ export default function RegisterPage() {
         setError(null);
 
         const formData = new FormData(event.currentTarget);
-        const name = formData.get("name") as string;
+        const fullname = formData.get("name") as string;
+        const username = formData.get("username") as string;
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
+        const department = formData.get("department") as string;
         const role = formData.get("role") as string;
 
-        if (password.length < 6) {
-            setError("Password must be at least 6 characters");
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters");
             setIsLoading(false);
             return;
         }
 
         try {
-            const response = await fetch("/api/register", {
+            const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password, role }),
+                body: JSON.stringify({ fullname, username, email, password, department, role }),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const data = await response.json();
                 throw new Error(data.message || "Something went wrong");
             }
 
-            router.push("/login");
+            // Redirect to Queue Page
+            if (data.queueID) {
+                router.push(`/auth/queue?queueID=${data.queueID}`);
+            } else if (data.redirectTo) {
+                router.push(data.redirectTo);
+            } else {
+                router.push("/auth/queue");
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -119,6 +129,11 @@ export default function RegisterPage() {
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input id="username" name="username" placeholder="johndoe" required className="h-11 bg-white dark:bg-black" />
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input id="email" name="email" type="email" placeholder="name@company.com" required className="h-11 bg-white dark:bg-black" />
                         </div>
@@ -126,6 +141,11 @@ export default function RegisterPage() {
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
                             <Input id="password" name="password" type="password" required className="h-11 bg-white dark:bg-black" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="department">Department (Optional)</Label>
+                            <Input id="department" name="department" placeholder="Engineering" className="h-11 bg-white dark:bg-black" />
                         </div>
 
                         <div className="space-y-2">
@@ -150,7 +170,7 @@ export default function RegisterPage() {
 
                         <Button type="submit" className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Account <ArrowRight className="ml-2 h-4 w-4" />
+                            Submit for Approval <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </form>
 

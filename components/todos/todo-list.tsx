@@ -1,11 +1,13 @@
 "use client"
 
+import Link from "next/link"
+
 import { useState } from "react"
 import { createTodo, toggleTodo, deleteTodo } from "@/actions/todos"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Trash2, CheckCircle2, Circle, Plus, Loader2, Folder, Clock } from "lucide-react"
+import { Trash2, CheckCircle2, Circle, Plus, Loader2, Folder, Clock, FolderKanban } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Project {
@@ -21,7 +23,7 @@ interface Todo {
     Project?: { ProjectName: string } | null
 }
 
-export function TodoList({ initialTodos, projects }: { initialTodos: Todo[], projects: Project[] }) {
+export function TodoList({ initialTodos, projects, assignedTasks = [] }: { initialTodos: Todo[], projects: Project[], assignedTasks?: any[] }) {
     const [todos, setTodos] = useState(initialTodos)
     const [newTodo, setNewTodo] = useState("")
     const [selectedProject, setSelectedProject] = useState<string>("")
@@ -161,6 +163,43 @@ export function TodoList({ initialTodos, projects }: { initialTodos: Todo[], pro
 
             {/* Lists */}
             <div className="grid gap-6 md:grid-cols-1">
+
+                {/* Project Tasks */}
+                {assignedTasks && assignedTasks.length > 0 && (
+                    <Card className="border-primary/20 bg-primary/5">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FolderKanban className="w-5 h-5 text-primary" />
+                                Assigned Project Tasks
+                            </CardTitle>
+                            <CardDescription>Tasks assigned to you from projects</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            {assignedTasks.map((task: any) => (
+                                <Link key={task.TaskID} href={`/projects/${task.TaskLists?.Projects?.ProjectID || ''}/board?taskId=${task.TaskID}`} className="block">
+                                    <div className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group">
+                                        <div className="flex items-center gap-3 w-full">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 flex-1">
+                                                <span className="font-medium text-foreground group-hover:text-primary transition-colors">{task.Title}</span>
+                                                <div className="flex gap-2">
+                                                    {task.TaskLists?.Projects && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary w-fit">
+                                                            <Folder className="w-3 h-3 mr-1" />
+                                                            {task.TaskLists.Projects.ProjectName}
+                                                        </span>
+                                                    )}
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground w-fit">
+                                                        {task.Status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Active List */}
                 <Card>

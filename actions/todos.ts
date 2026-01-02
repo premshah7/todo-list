@@ -124,3 +124,27 @@ export async function getUserProjects() {
         select: { ProjectID: true, ProjectName: true }
     })
 }
+
+export async function getAssignedProjectTasks() {
+    const user = await getCurrentUser()
+    if (!user) return []
+
+    const userId = parseInt(user.id)
+    return await prisma.tasks.findMany({
+        where: {
+            AssignedTo: userId,
+            Status: { not: 'Completed' }
+        },
+        include: {
+            TaskLists: {
+                select: {
+                    ListName: true,
+                    Projects: {
+                        select: { ProjectName: true }
+                    }
+                }
+            }
+        },
+        orderBy: { DueDate: 'asc' }
+    })
+}
